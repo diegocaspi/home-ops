@@ -48,5 +48,10 @@
       exec = "terragrunt run --all apply";
       description = "Run terragrunt apply for all infrastructure modules";
     };
+
+    boot = {
+      exec = "helmfile -f bootstrap/helmfile.yaml sync --hide-notes";
+      description = "Bootstrap the kubernetes cluster using helmfile";
+    };
   };
 }
