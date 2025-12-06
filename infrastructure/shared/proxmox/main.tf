@@ -17,12 +17,13 @@ variable "nodes" {
 }
 
 resource "proxmox_virtual_environment_download_file" "talos_iso" {
-  content_type = "import"
+  content_type = "iso"
   datastore_id = "local"
   node_name    = var.host_name
   # talos 1.11.5 no cloud image, with qemu agent support
   url       = "https://factory.talos.dev/image/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515/v1.11.5/nocloud-amd64.iso"
   file_name = "talos-amd64.iso"
+  verify    = false
 }
 
 resource "proxmox_virtual_environment_vm" "talos_vm" {
@@ -31,7 +32,7 @@ resource "proxmox_virtual_environment_vm" "talos_vm" {
   description = "Virtual machine running Talos OS"
   tags        = ["opentofu", "talos", "kubernetes"]
 
-  node_name = each.key
+  node_name = var.host_name
   vm_id     = each.value.id
 
   agent {
@@ -58,7 +59,6 @@ resource "proxmox_virtual_environment_vm" "talos_vm" {
   }
 
   cdrom {
-    enabled = true
     file_id = proxmox_virtual_environment_download_file.talos_iso.id
   }
 
