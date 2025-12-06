@@ -1,0 +1,4 @@
+---
+creation_rules:
+  - path_regex: talos/.+\.sops\.yaml
+    age: age1uufdnvkw0darvl867yuk58dd80k7yynag27r2au4vua9hc28y4zsal98g4

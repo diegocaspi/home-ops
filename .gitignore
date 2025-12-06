@@ -1,0 +1,21 @@
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+vendor/
+node_modules/
+tmp/
+
+.devenv*
+.dirnev
+
+talos/clusterconfig
+
+.env
+
+# Terragrunt cache files
+**/.terragrunt-cache/
+**/.terraform*
