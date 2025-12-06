@@ -38,5 +38,10 @@
       exec = "terragrunt run --all plan";
       description = "Run terragrunt plan for all infrastructure modules";
     };
+
+    infra-apply = {
+      exec = "terragrunt run --all apply";
+      description = "Run terragrunt apply for all infrastructure modules";
+    };
   };
 }
