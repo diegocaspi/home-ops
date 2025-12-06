@@ -2,7 +2,7 @@
 
 {
   packages = [
-    pkgs.git
+    pkgs.git pkgs.yq
 
     #Kubernetes
     pkgs.holos
@@ -25,13 +25,18 @@
 
   scripts = {
     talos-gen = {
-      exec = "talhelper genconfig -c talos/talconfig.yaml -o talos/clusterconfig";
+      exec = "talhelper genconfig -c talos/talconfig.yaml -o talos/clusterconfig -s talos/talsecret.sops.yaml";
       description = "Generate Talos cluster configuration files";
     };
 
     talos-encrypt = {
       exec = "sops --config .sops.yaml -e -i talos/talsecret.sops.yaml";
       description = "Encrypt the talos secrets file using sops";
+    };
+
+    talos-apply = {
+      exec = "./talos/apply.sh talos/talconfig.yaml";
+      description = "Apply Talos configuration to the cluster nodes";
     };
 
     infra-plan = {

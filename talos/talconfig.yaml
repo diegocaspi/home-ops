@@ -1,19 +1,19 @@
 ---
-clusterName: hypnos
+clusterName: nova
 talosVersion: v1.11.5
 kubernetesVersion: v1.34.0
-endpoint: https://192.168.2.208:6443
+endpoint: https://192.168.2.58:6443
 allowSchedulingOnMasters: true
 nodes:
-  - hostname: master
+  - hostname: controlplane
     controlPlane: true
-    ipAddress: 192.168.2.208
+    ipAddress: 192.168.2.58
     installDisk: /dev/sda
     nodeLabels:
       physical-location: nas
   - hostname: workload
     controlPlane: false
-    ipAddress: 192.168.2.29
+    ipAddress: 192.168.2.202
     installDisk: /dev/sda
     nodeLabels:
       physical-location: nas
