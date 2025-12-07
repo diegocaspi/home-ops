@@ -66,8 +66,8 @@ jobs:
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN: op://Homelab/proxmox-${module}/api-token" >> /tmp/op-env.tpl
-            echo "PROXMOX_${env_name}_SSH_KEY: op://Homelab/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> /tmp/op-env.tpl
+            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
           done
 
           cat /tmp/op-env.tpl
@@ -96,6 +96,7 @@ jobs:
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
             ssh_key_var="PROXMOX_${env_name}_SSH_KEY"
+            echo "DEBUG: processing ${env_name}..."
 
             # Check if the SSH key variable exists and add it to the agent
             if [ -n "${!ssh_key_var}" ]; then
