@@ -8,9 +8,23 @@ When setting up a GitOps-managed Kubernetes cluster, there's an inherent chicken
 
 ## Helmfile-Based Bootstrap
 
-This repository uses [Helmfile](https://helmfile.readthedocs.io/) to perform the initial bootstrap. Helmfile provides a declarative way to deploy Helm charts, which makes it ideal for this one-time installation step. The bootstrap is orchestrated by `bootstrap/helmfile.yaml`, which installs four critical components in a specific order:
+This repository uses [Helmfile](https://helmfile.readthedocs.io/) to perform the initial bootstrap. Helmfile provides a declarative way to deploy Helm charts, which makes it ideal for this one-time installation step. The bootstrap process is split into two stages:
 
-1. **Cilium** - The CNI provider that enables pod networking
+### Stage 1: CRD Installation (`bootstrap/helmfile.crds.yaml`)
+
+Before installing any applications, Gateway API CRDs must be installed first. This is required because Cilium uses Gateway API for advanced networking features. The CRDs are installed using server-side apply to ensure proper ownership and conflict resolution:
+
+```bash
+boot-crds
+```
+
+This command templates the helmfile, filters for CustomResourceDefinition resources, and applies them with the `bootstrap` field manager.
+
+### Stage 2: Application Bootstrap (`bootstrap/helmfile.apps.yaml`)
+
+Once the CRDs are in place, the actual applications can be installed. This helmfile orchestrates the installation of four critical components in a specific order:
+
+1. **Cilium** - The CNI provider that enables pod networking with Gateway API support
 2. **CoreDNS** - Cluster DNS resolution
 3. **Flux Operator** - Manages Flux component lifecycle
 4. **Flux Instance** - The actual Flux deployment that syncs from Git
@@ -43,40 +57,66 @@ This means the values used during bootstrap are **identical** to the values Flux
 
 For example, when CoreDNS is installed during bootstrap, it receives the exact same configuration (replica count, image repository, server plugins, affinity rules, etc.) that's defined in `kubernetes/apps/kube-system/coredns/app/helmrelease.yaml`. When Flux starts and encounters the already-deployed CoreDNS installation, it sees that the current state matches the desired state and leaves it untouched.
 
-## Special Handling: Cilium
+## Special Handling: Cilium and Gateway API
 
-Cilium requires slightly different treatment because it's the CNI - it must be fully operational before any other pods can network. Additionally, Cilium has custom resources (like `CiliumLoadBalancerIPPool`) that need to be applied after the Cilium operator is running but before Flux starts.
+Cilium requires special treatment for two reasons:
 
-The helmfile installs Cilium directly from an OCI registry (`oci://ghcr.io/home-operations/charts-mirror/cilium`) and uses post-sync hooks to ensure proper sequencing:
+1. **It's the CNI** - it must be fully operational before any other pods can network
+2. **Gateway API Support** - Cilium's Gateway API features require Gateway API CRDs to be present before installation
+
+This is why the bootstrap is split into two stages. The Gateway API CRDs must be installed in Stage 1 before Cilium can be deployed with Gateway API support enabled.
+
+Additionally, Cilium has custom resources (like `CiliumLoadBalancerIPPool`) that need to be applied after the Cilium operator is running but before Flux starts. The helmfile installs Cilium directly from an OCI registry (`oci://ghcr.io/home-operations/charts-mirror/cilium`) and uses post-sync hooks to ensure proper sequencing:
 
 1. First hook waits for Cilium CRDs to become available by polling for `ciliumloadbalancerippools.cilium.io`
 2. Second hook applies the Cilium networking configuration from `kubernetes/apps/kube-system/cilium/app/networking.yaml`
 
 ## The Smooth Handoff
 
-The carefully orchestrated bootstrap process results in a seamless transition to GitOps management:
+The carefully orchestrated two-stage bootstrap process results in a seamless transition to GitOps management:
 
-1. **Helmfile runs** and installs all components with values sourced directly from the kubernetes layer
-2. **Flux Instance is created** as the final bootstrap step, configured to sync from this Git repository
-3. **Flux initializes** and reads the desired state from `kubernetes/flux/cluster`
-4. **Flux evaluates** the cluster's current state against the Git repository
-5. **No changes detected** - everything matches because bootstrap used the same configurations
-6. **Flux takes over** ongoing management without disruption
+1. **Stage 1: CRDs are installed** via `boot-crds`, providing the API foundations (Gateway API)
+2. **Stage 2: Helmfile runs** and installs all components with values sourced directly from the kubernetes layer
+3. **Flux Instance is created** as the final bootstrap step, configured to sync from this Git repository
+4. **Flux initializes** and reads the desired state from `kubernetes/flux/cluster`
+5. **Flux evaluates** the cluster's current state against the Git repository
+6. **No changes detected** - everything matches because bootstrap used the same configurations
+7. **Flux takes over** ongoing management without disruption
 
 From this point forward, any changes to component configurations are made by updating the HelmRelease manifests in the `kubernetes/apps/` directory, committing to Git, and allowing Flux to reconcile. The bootstrap process doesn't need to run again unless the cluster is being rebuilt from scratch.
 
 ## Running the Bootstrap
 
-The bootstrap is executed via the devenv script:
+The bootstrap is executed in two stages via devenv scripts:
+
+### Stage 1: Install CRDs
 
 ```bash
-boot
+boot-crds
+```
+
+This command installs the Gateway API CRDs required for Cilium's Gateway API support. It internally runs:
+
+```bash
+helmfile -f bootstrap/helmfile.crds.yaml template -q | \
+  yq 'select(.kind == "CustomResourceDefinition")' | \
+  kubectl apply --server-side --field-manager bootstrap --force-conflicts -f -
+```
+
+This templates the helmfile, extracts only the CustomResourceDefinition resources, and applies them using server-side apply with the `bootstrap` field manager.
+
+### Stage 2: Bootstrap Applications
+
+Once the CRDs are successfully applied, proceed with the application bootstrap:
+
+```bash
+boot-apps
 ```
 
 This script internally runs:
 
 ```bash
-helmfile -f bootstrap/helmfile.yaml sync
+helmfile -f bootstrap/helmfile.apps.yaml sync --hide-notes --kube-context nova
 ```
 
 The sync operation will:
@@ -85,7 +125,9 @@ The sync operation will:
 - Wait for Flux Instance to become ready
 - Leave you with a fully GitOps-managed cluster
 
-After bootstrap completes, you can verify Flux is operating correctly:
+### Verification
+
+After both stages complete, you can verify Flux is operating correctly:
 
 ```bash
 kubectl get gitrepository -n flux-system
@@ -102,6 +144,10 @@ This architecture ensures configuration drift cannot occur during the critical b
 2. Commit the change to Git
 3. Flux automatically detects and applies the change
 
-If you ever need to re-bootstrap the cluster, Helmfile will automatically pick up those changes because it reads from the same HelmRelease files. The single source of truth remains the kubernetes layer, whether you're bootstrapping or letting Flux manage ongoing operations.
+If you ever need to re-bootstrap the cluster, remember to run both stages in order:
+1. First `boot-crds` to install/update CRDs
+2. Then `boot-apps` to bootstrap applications
 
-This design philosophy - using the GitOps manifests as the source of truth even during bootstrap - is what enables truly declarative cluster management from day one.
+Helmfile will automatically pick up any configuration changes because it reads from the same HelmRelease files. The single source of truth remains the kubernetes layer, whether you're bootstrapping or letting Flux manage ongoing operations.
+
+This design philosophy - using the GitOps manifests as the source of truth even during bootstrap, combined with proper CRD pre-installation for advanced features - is what enables truly declarative cluster management from day one.

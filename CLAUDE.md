@@ -35,11 +35,19 @@ This is a GitOps-based home operations repository for managing a Kubernetes clus
 
 ### Bootstrap Process
 
-The bootstrap layer (`bootstrap/helmfile.yaml`) uses Helmfile to initially install critical cluster components before Flux takes over:
-1. Cilium (CNI) - from OCI registry with networking config
-2. CoreDNS - depends on Cilium
-3. Flux Operator - depends on Cilium
-4. Flux Instance - depends on Flux Operator
+The bootstrap process is split into two stages to properly support Gateway API in Cilium:
+
+**Stage 1: CRD Installation** (`bootstrap/helmfile.crds.yaml`)
+- Gateway API CRDs must be installed first to enable Cilium's Gateway API support
+- Executed via `boot-crds` command
+
+**Stage 2: Application Bootstrap** (`bootstrap/helmfile.apps.yaml`)
+- Installs critical cluster components before Flux takes over:
+  1. Cilium (CNI) - from OCI registry with networking config and Gateway API support
+  2. CoreDNS - depends on Cilium
+  3. Flux Operator - depends on Cilium
+  4. Flux Instance - depends on Flux Operator
+- Executed via `boot-apps` command
 
 After bootstrap, Flux GitRepository monitors this repo and reconciles changes automatically.
 
@@ -87,12 +95,19 @@ talosctl kubeconfig --nodes <ip>  # Get kubeconfig
 
 ### Kubernetes Bootstrap
 ```bash
-boot  # Bootstrap cluster using helmfile (installs Cilium, CoreDNS, Flux)
+boot-crds  # Install Gateway API CRDs (required first for Cilium Gateway API support)
+boot-apps  # Bootstrap cluster with Cilium, CoreDNS, and Flux
 ```
 
 Manual bootstrap:
 ```bash
-helmfile -f bootstrap/helmfile.yaml sync
+# Step 1: Install CRDs first
+helmfile -f bootstrap/helmfile.crds.yaml template -q | \
+  yq 'select(.kind == "CustomResourceDefinition")' | \
+  kubectl apply --server-side --field-manager bootstrap --force-conflicts -f -
+
+# Step 2: Bootstrap applications (after CRDs are applied)
+helmfile -f bootstrap/helmfile.apps.yaml sync
 ```
 
 ### Working with Secrets
@@ -113,7 +128,8 @@ SOPS configuration in `.sops.yaml` uses age encryption for files matching `talos
 - `infrastructure/hosts/<hostname>/terragrunt.hcl` - Per-host VM specifications
 - `talos/talconfig.yaml` - Talos cluster definition (nodes, IPs, versions)
 - `talos/apply.sh` - Script to apply Talos configs to all nodes from talconfig.yaml
-- `bootstrap/helmfile.yaml` - Initial cluster bootstrap (pre-Flux)
+- `bootstrap/helmfile.crds.yaml` - CRD installation for bootstrap (Gateway API)
+- `bootstrap/helmfile.apps.yaml` - Initial cluster bootstrap (pre-Flux)
 - `kubernetes/flux/cluster/ks.yaml` - Main Flux Kustomization with patches for all apps
 - `kubernetes/apps/<namespace>/<app>/` - Application manifests organized by namespace
 
