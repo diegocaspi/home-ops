@@ -5,8 +5,8 @@ remote_state {
     if_exists = "overwrite"
   }
   config = {
-    bucket         = "home-ops-remote-state"
-    key            = "${path_relative_to_include()}/terraform.tfstate"
+    bucket                      = "home-ops-remote-state"
+    key                         = "${path_relative_to_include()}/terraform.tfstate"
     region                      = "auto"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
@@ -14,9 +14,9 @@ remote_state {
     skip_requesting_account_id  = true
     skip_s3_checksum            = true
     use_path_style              = true
-    access_key = "${get_env("R2_ACCESS_KEY")}"
-    secret_key = "${get_env("R2_ACCESS_SECRET")}"
-    endpoints = { s3 = "https://${get_env("CLOUDFLARE_ACCOUNT_ID")}.r2.cloudflarestorage.com" }
+    access_key                  = "${get_env("R2_ACCESS_KEY")}"
+    secret_key                  = "${get_env("R2_ACCESS_SECRET")}"
+    endpoints                   = { s3 = "https://${get_env("CLOUDFLARE_ACCOUNT_ID")}.r2.cloudflarestorage.com" }
   }
 }
 
@@ -41,7 +41,7 @@ terraform {
     ]
 
     arguments = [
-      "-lock-timeout=20m"
+      "-lock-timeout=1m"
     ]
 
     env_vars = {

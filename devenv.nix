@@ -19,7 +19,6 @@
 
   dotenv.enable = true;
   languages = {
-    cue.enable = true;
     opentofu.enable = true;
   };
 
@@ -40,7 +39,7 @@
     };
 
     infra-plan = {
-      exec = "terragrunt run --all plan";
+      exec = "terragrunt run --all plan --log-level trace";
       description = "Run terragrunt plan for all infrastructure modules";
     };
 
