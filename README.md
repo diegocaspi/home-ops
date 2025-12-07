@@ -15,29 +15,19 @@ This repository represents a complete infrastructure-as-code implementation of a
 
 The entire system flows from bare metal to running workloads through four distinct layers: infrastructure provisioning, OS configuration, initial bootstrapping, and continuous GitOps reconciliation. Each layer has its own lifecycle and purpose, but they work together to create a fully automated, reproducible infrastructure.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🔄 Kubernetes Layer (GitOps - Automatic Reconciliation)    │
-│     Flux continuously syncs cluster state from Git          │
-└─────────────────────────────────────────────────────────────┘
-                            ▲
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  🚀 Bootstrap Layer (One-time Setup)                        │
-│     Helmfile installs Cilium + Flux to enable GitOps        │
-└─────────────────────────────────────────────────────────────┘
-                            ▲
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  🐧 Talos Layer (OS Configuration)                          │
-│     Talos Linux installation and cluster configuration      │
-└─────────────────────────────────────────────────────────────┘
-                            ▲
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│  🏗️  Infrastructure Layer (VM Provisioning)                 │
-│     Terragrunt + OpenTofu manage Proxmox VMs                │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    A["🏗️ Infrastructure Layer<br/>(VM Provisioning)<br/><br/>Terragrunt + OpenTofu<br/>manage Proxmox VMs"]
+    B["🐧 Talos Layer<br/>(OS Configuration)<br/><br/>Talos Linux installation<br/>and cluster configuration"]
+    C["🚀 Bootstrap Layer<br/>(One-time Setup)<br/><br/>Helmfile installs Cilium<br/>+ Flux to enable GitOps"]
+    D["🔄 Kubernetes Layer<br/>(GitOps - Automatic Reconciliation)<br/><br/>Flux continuously syncs<br/>cluster state from Git"]
+
+    A --> B --> C --> D
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#fbb,stroke:#333,stroke-width:2px
 ```
 
 ## 🏗️ The Layered Architecture
