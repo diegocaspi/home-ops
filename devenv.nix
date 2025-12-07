@@ -5,7 +5,7 @@
     pkgs.git pkgs.yq
 
     #Kubernetes
-    pkgs.holos
+    pkgs.helmfile
 
     # Encryption
     pkgs.sops pkgs.age
@@ -50,7 +50,7 @@
     };
 
     boot = {
-      exec = "helmfile -f bootstrap/helmfile.yaml sync --hide-notes";
+      exec = "helmfile -f bootstrap/helmfile.yaml sync --hide-notes --kube-context nova";
       description = "Bootstrap the kubernetes cluster using helmfile";
     };
   };

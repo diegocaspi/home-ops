@@ -20,6 +20,8 @@ spec:
       preallocateMaps: true
       tproxy: true
     bpfClockProbe: true
+    bgpControlPlane:
+      enabled: false
     cgroup:
       automount:
         enabled: false
@@ -52,19 +54,19 @@ spec:
       enabled: true
     operator:
       dashboards:
-        enabled: false # to enable
+        enabled: false
       prometheus:
-        enabled: false # to enable
+        enabled: false
         serviceMonitor:
-          enabled: false # to enable
+          enabled: false
       replicas: 2
       rollOutPods: true
     pmtuDiscovery:
       enabled: true
     prometheus:
-      enabled: false # to enable
+      enabled: false
       serviceMonitor:
-        enabled: false # to enable
+        enabled: false
         trustCRDsExist: true
     rollOutCiliumPods: true
     routingMode: native
