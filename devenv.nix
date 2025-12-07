@@ -49,9 +49,26 @@
       description = "Run terragrunt apply for all infrastructure modules";
     };
 
-    boot = {
-      exec = "helmfile -f bootstrap/helmfile.yaml sync --hide-notes --kube-context nova";
+    boot-crds = {
+      exec = "helmfile -f bootstrap/helmfile.crds.yaml template -q | \
+        yq 'select(.kind == \"CustomResourceDefinition\")' | \
+        kubectl apply --server-side --field-manager bootstrap --force-conflicts -f -";
+      description = "Install the CRDs needed to bootstrap the kubernetes cluster using helmfile";
+    };
+
+    boot-apps = {
+      exec = "helmfile -f bootstrap/helmfile.apps.yaml sync --hide-notes --kube-context nova";
       description = "Bootstrap the kubernetes cluster using helmfile";
     };
   };
+
+  enterShell = ''
+      echo
+      echo 🦾 Helper scripts you can run to make your development richer:
+      echo 🦾
+      ${pkgs.gnused}/bin/sed -e 's| |••|g' -e 's|=| |' <<EOF | ${pkgs.util-linuxMinimal}/bin/column -t | ${pkgs.gnused}/bin/sed -e 's|^|🦾 |' -e 's|••| |g'
+      ${lib.generators.toKeyValue {} (lib.mapAttrs (name: value: value.description) config.scripts)}
+      EOF
+      echo
+    '';
 }
