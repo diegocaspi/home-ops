@@ -70,7 +70,7 @@ jobs:
             echo "PROXMOX_${env_name}_SSH_KEY: op://Homelab/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
           done
 
-          cat /tmp/op-env.txt
+          cat /tmp/op-env.tpl
 
       - uses: 1password/load-secrets-action/configure@v3
         with:
