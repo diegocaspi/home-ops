@@ -91,11 +91,7 @@ jobs:
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
 
-          # Start SSH agent
-          eval $(ssh-agent -s)
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
-
+          ssh_keys=''
           # Add all SSH keys to agent
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
@@ -104,12 +100,25 @@ jobs:
             # Check if the SSH key variable exists and add it to the agent
             if [ -n "${!ssh_key_var}" ]; then
               echo "Adding SSH key for module: $module"
-              echo "${!ssh_key_var}" | ssh-add -
+
+              # Accumulate keys
+              if [ -z "$ssh_keys" ]; then
+                ssh_keys="${!ssh_key_var}"
+              else
+                ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
+              fi
             fi
           done
 
-          # List loaded keys
-          ssh-add -l
+          if [ -n "$ssh_keys" ]; then
+            echo "MODULES_SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+            echo "$ssh_keys" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.MODULES_SSH_PRIVATE_KEY }}
 
       - name: Terragrunt Plan
         uses: gruntwork-io/terragrunt-action@v3
