@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  id-token: write
+
 jobs:
   detect-modules:
     name: Detect Infrastructure Modules
@@ -40,15 +43,16 @@ jobs:
     name: Terragrunt Plan (All Modules)
     runs-on: ubuntu-latest
     needs: detect-modules
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
+        uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
 
       - name: Generate 1Password Secret Mappings
@@ -62,28 +66,26 @@ jobs:
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN: op://homeops/proxmox-${module}/api-token" >> /tmp/op-env.tpl
-            echo "PROXMOX_${env_name}_SSH_KEY: op://homeops/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
+            echo "PROXMOX_${env_name}_API_TOKEN: op://Homelab/proxmox-${module}/api-token" >> /tmp/op-env.tpl
+            echo "PROXMOX_${env_name}_SSH_KEY: op://Homelab/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
           done
 
           cat /tmp/op-env.txt
 
+      - uses: 1password/load-secrets-action/configure@v3
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
       - name: Load Secrets from 1Password
         id: op
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v3
         with:
           export-env: true
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          R2_ACCESS_KEY: op://homeops/cloudflare-r2/access-key
-          R2_ACCESS_SECRET: op://homeops/cloudflare-r2/secret-key
-          CLOUDFLARE_ACCOUNT_ID: op://homeops/cloudflare-r2/account-id
+          R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
+          R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
+          CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
           OP_ENV_FILE: "/tmp/op-env.tpl"
-
-          # Dynamically load secrets for all detected modules
-          # Note: We need to statically define these in the workflow
-          # GitHub Actions doesn't support dynamic env generation in the env block
-          # So we'll need to add them in a setup step instead
 
       - name: Setup SSH Agent
         run: |
@@ -110,7 +112,7 @@ jobs:
           ssh-add -l
 
       - name: Terragrunt Plan
-        uses: gruntwork-io/terragrunt-action@v2
+        uses: gruntwork-io/terragrunt-action@v3
         with:
           tg_version: "latest"
           tofu_version: "latest"
