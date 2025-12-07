@@ -151,7 +151,7 @@ The control plane endpoint is `https://192.168.2.58:6443`, and both nodes are la
 ## 📚 Further Reading
 
 The `docs/` directory contains additional documentation on specific topics:
-- **[Proxmox Setup](docs/infrastructure/proxmox.md)** - How to configure Proxmox hosts for Terraform/OpenTofu access
+- **[Proxmox Setup](docs/infrastructure/proxmox-opentofu.md)** - How to configure Proxmox hosts for Terraform/OpenTofu access
 - **[Cluster Bootstrap](docs/cluster/bootstrap.md)** - Details on the bootstrap process
 - **[Infrastructure Automation](docs/infrastructure/automation.md)** - Information about infrastructure automation
 
