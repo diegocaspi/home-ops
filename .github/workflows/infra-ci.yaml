@@ -88,8 +88,8 @@ jobs:
           MODULES='${{ needs.detect-modules.outputs.modules }}'
 
           ssh_keys=''
-          # Add all SSH keys to agent
-          echo "$MODULES" | jq -r '.[]' | while read -r module; do
+          # Add all SSH keys to agent - use process substitution to avoid subshell
+          while read -r module; do
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
             ssh_key_var="PROXMOX_${env_name}_SSH_KEY"
             echo "DEBUG: processing ${env_name}..."
@@ -107,7 +107,7 @@ jobs:
                 ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
               fi
             fi
-          done
+          done < <(echo "$MODULES" | jq -r '.[]')
 
           if [ -n "$ssh_keys" ]; then
             echo "DEBUG: exporting modules ssh keys"
