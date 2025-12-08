@@ -65,7 +65,7 @@ jobs:
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token >> $GITHUB_ENV
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> $GITHUB_ENV
             echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> $GITHUB_ENV
           done
 
