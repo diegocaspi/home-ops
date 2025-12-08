@@ -55,26 +55,26 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
 
+      - uses: 1password/load-secrets-action/configure@v3
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
       - name: Generate 1Password Secret Mappings
         id: generate-op-env
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
-          touch .op-env.tpl
+          touch op-env.tpl
 
           # Add environment variables for each module
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> .op-env.tpl
-            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> .op-env.tpl
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> ./op-env.tpl
+            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> ./op-env.tpl
           done
 
-          cat .op-env.tpl
-
-      - uses: 1password/load-secrets-action/configure@v3
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          cat ./op-env.tpl
 
       - name: Load Secrets from 1Password
         id: op
@@ -85,7 +85,7 @@ jobs:
           R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
           R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
           CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
-          OP_ENV_FILE: ".op-env.tpl"
+          OP_ENV_FILE: "./op-env.tpl"
 
       - name: Setup SSH Agent
         run: |
