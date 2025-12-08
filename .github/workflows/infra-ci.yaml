@@ -108,9 +108,8 @@ jobs:
           done
 
           if [ -n "$ssh_keys" ]; then
-            echo "MODULES_SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-            echo "$ssh_keys" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "DEBUG: exporting modules ssh keys"
+            echo "MODULES_SSH_PRIVATE_KEY=$ssh_keys" >> $GITHUB_ENV
           fi
 
       - uses: webfactory/ssh-agent@v0.9.0
