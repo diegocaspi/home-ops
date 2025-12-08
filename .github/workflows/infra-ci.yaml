@@ -130,7 +130,7 @@ jobs:
           tg_version: "latest"
           tofu_version: "latest"
           tg_dir: infrastructure
-          tg_command: "--all plan"
+          tg_command: "run --all plan"
           tg_comment: true
           tg_add_approve: false
         env:
