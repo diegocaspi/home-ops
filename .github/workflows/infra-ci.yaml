@@ -121,7 +121,8 @@ jobs:
 
       - uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ env.MODULES_SSH_PRIVATE_KEY }}
+          ssh-private-key: |
+            ${{ env.MODULES_SSH_PRIVATE_KEY }}
 
       - name: Terragrunt Plan
         uses: gruntwork-io/terragrunt-action@v3
