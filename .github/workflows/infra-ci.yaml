@@ -55,131 +55,65 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
 
-      - name: Generate 1Password Secret Mappings
-        id: generate-op-env
+      - name: Prepare 1Password Secret References
+        id: prepare-secrets
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
 
-          # Add environment variables for each module
+          # Generate environment variable mappings for 1Password
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
-            # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
-
-            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> $GITHUB_ENV
             echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> $GITHUB_ENV
           done
 
-      - uses: 1password/load-secrets-action/configure@v3
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
       - name: Load Secrets from 1Password
-        id: op
         uses: 1password/load-secrets-action@v3
         with:
           export-env: true
         env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
           R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
           CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
 
-      - name: Setup SSH Agent
+      - name: Combine SSH Keys for Agent
+        id: combine-keys
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
 
-          # Combine all SSH keys with proper delimiter
-          ssh_keys_array=()
-
+          # Collect all SSH keys into a single variable for webfactory/ssh-agent
+          all_keys=""
           while read -r module; do
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
             ssh_key_var="PROXMOX_${env_name}_SSH_KEY"
 
-            # Check if the SSH key variable exists and add it to array
             if [ -n "${!ssh_key_var}" ]; then
-              echo "Found SSH key for module: $module"
-              # Trim whitespace and ensure proper format
-              ssh_key=$(echo "${!ssh_key_var}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-              ssh_keys_array+=("$ssh_key")
+              echo "Adding SSH key for module: $module"
+              if [ -n "$all_keys" ]; then
+                all_keys="${all_keys}"$'\n'"${!ssh_key_var}"
+              else
+                all_keys="${!ssh_key_var}"
+              fi
             fi
           done < <(echo "$MODULES" | jq -r '.[]')
 
-          if [ ${#ssh_keys_array[@]} -gt 0 ]; then
-            # Join keys with newline separator
-            printf -v ssh_keys_joined '%s\n' "${ssh_keys_array[@]}"
+          # Export combined keys
+          {
+            echo "COMBINED_SSH_KEYS<<EOF"
+            echo "$all_keys"
+            echo "EOF"
+          } >> $GITHUB_ENV
 
-            # Export to GITHUB_ENV with proper heredoc
-            {
-              echo "MODULES_SSH_PRIVATE_KEY<<EOF"
-              printf '%s\n' "$ssh_keys_joined"
-              echo "EOF"
-            } >> $GITHUB_ENV
-          fi
+      - name: Setup SSH Agent with 1Password Keys
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.COMBINED_SSH_KEYS }}
 
-      - name: Setup SSH Agent Manually
-        if: env.MODULES_SSH_PRIVATE_KEY != ''
+      - name: Configure SSH for Proxmox
         run: |
-          # Start SSH agent and export variables
-          eval "$(ssh-agent -s)"
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
-          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> $GITHUB_ENV
-
-          # Create .ssh directory with proper permissions
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          # Debug: Check if environment variable is set
-          if [ -z "$MODULES_SSH_PRIVATE_KEY" ]; then
-            echo "ERROR: MODULES_SSH_PRIVATE_KEY is empty"
-            exit 1
-          fi
-
-          echo "Processing SSH keys..."
-          echo "First 100 chars: ${MODULES_SSH_PRIVATE_KEY:0:100}"
-
-          # Write all keys to a single file first
-          keys_file=$(mktemp)
-          echo "$MODULES_SSH_PRIVATE_KEY" > "$keys_file"
-
-          # Split keys by BEGIN/END markers and add each one
-          key_count=0
-          temp_key=""
-          in_key=false
-
-          while IFS= read -r line; do
-            if [[ "$line" == *"-----BEGIN"*"PRIVATE KEY-----"* ]]; then
-              in_key=true
-              temp_key="$line"
-            elif [[ "$in_key" == true ]]; then
-              temp_key="$temp_key"$'\n'"$line"
-
-              if [[ "$line" == *"-----END"*"PRIVATE KEY-----"* ]]; then
-                # Write this key to a temp file
-                key_file=$(mktemp)
-                echo "$temp_key" > "$key_file"
-                chmod 600 "$key_file"
-
-                # Add key to agent
-                key_count=$((key_count + 1))
-                echo "Adding key #$key_count to SSH agent..."
-                if ssh-add "$key_file"; then
-                  echo "Successfully added key #$key_count"
-                else
-                  echo "Failed to add key #$key_count"
-                  cat "$key_file" | head -n 1  # Show first line for debugging
-                fi
-
-                # Clean up
-                rm -f "$key_file"
-                temp_key=""
-                in_key=false
-              fi
-            fi
-          done < "$keys_file"
-
-          # Clean up
-          rm -f "$keys_file"
-
-          # Configure SSH to accept unknown host keys
           cat >> ~/.ssh/config <<EOF
           Host *
               StrictHostKeyChecking accept-new
@@ -187,9 +121,8 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-          # List added keys
-          echo "SSH keys loaded:"
-          ssh-add -l || echo "No keys loaded"
+          echo "SSH keys loaded in agent:"
+          ssh-add -l
 
       - name: Terragrunt Plan
         uses: gruntwork-io/terragrunt-action@v3
