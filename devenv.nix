@@ -14,12 +14,11 @@
     pkgs.talosctl pkgs.talhelper
 
     # Infrastructure
-    pkgs.terragrunt pkgs.opentofu
+    pkgs.terragrunt pkgs.opentofu pkgs.act
   ];
 
   dotenv.enable = true;
   languages = {
-    cue.enable = true;
     opentofu.enable = true;
   };
 
@@ -40,7 +39,7 @@
     };
 
     infra-plan = {
-      exec = "terragrunt run --all plan";
+      exec = "terragrunt run --all --working-dir infrastructure plan";
       description = "Run terragrunt plan for all infrastructure modules";
     };
 

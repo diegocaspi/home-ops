@@ -1,0 +1,123 @@
+name: Infrastructure CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "infrastructure/**"
+      - ".github/workflows/infra-ci.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-modules:
+    name: Detect Infrastructure Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.detect.outputs.modules }}
+      modules_env: ${{ steps.detect.outputs.modules_env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect All Modules
+        id: detect
+        run: |
+          # Find all module directories in infrastructure/hosts/
+          MODULES=$(find infrastructure/hosts -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | jq -R -s -c 'split("\n")[:-1]')
+          echo "modules=$MODULES" >> $GITHUB_OUTPUT
+          echo "All modules: $MODULES"
+
+          # Generate environment variable names for each module (e.g., hypnos -> HYPNOS)
+          MODULES_ENV=$(echo "$MODULES" | jq -r '.[] | gsub("-"; "_") | ascii_upcase' | jq -R -s -c 'split("\n")[:-1]')
+          echo "modules_env=$MODULES_ENV" >> $GITHUB_OUTPUT
+          echo "Module env names: $MODULES_ENV"
+
+  plan:
+    name: Terragrunt Plan (All Modules)
+    runs-on: ubuntu-latest
+    needs: detect-modules
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          tags: tag:ci
+
+      - name: Prepare 1Password Secret References
+        id: prepare-secrets
+        run: |
+          MODULES='${{ needs.detect-modules.outputs.modules }}'
+
+          # Generate environment variable mappings for 1Password
+          echo "$MODULES" | jq -r '.[]' | while read -r module; do
+            env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key?ssh-format=openssh" >> $GITHUB_ENV
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> $GITHUB_ENV
+          done
+
+      - name: Load Secrets from 1Password
+        uses: 1password/load-secrets-action@v3
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
+          R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
+          CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
+
+      - name: Combine SSH Keys for Agent
+        id: combine-keys
+        run: |
+          MODULES='${{ needs.detect-modules.outputs.modules }}'
+
+          # Collect all SSH keys into a single variable for webfactory/ssh-agent
+          all_keys=""
+          while read -r module; do
+            env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+            ssh_key_var="PROXMOX_${env_name}_SSH_KEY"
+
+            if [ -n "${!ssh_key_var}" ]; then
+              echo "Adding SSH key for module: $module"
+              if [ -n "$all_keys" ]; then
+                all_keys="${all_keys}"$'\n'"${!ssh_key_var}"
+              else
+                all_keys="${!ssh_key_var}"
+              fi
+            fi
+          done < <(echo "$MODULES" | jq -r '.[]')
+
+          # Export combined keys
+          {
+            echo "COMBINED_SSH_KEYS<<EOF"
+            echo "$all_keys"
+            echo "EOF"
+          } >> $GITHUB_ENV
+
+      - name: Setup SSH Agent with 1Password Keys
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.COMBINED_SSH_KEYS }}
+
+      - name: Terragrunt Plan
+        uses: gruntwork-io/terragrunt-action@v3
+        with:
+          tg_version: "latest"
+          tofu_version: "latest"
+          tg_dir: infrastructure
+          tg_command: "run --all plan"
+          tg_comment: true
+          tg_add_approve: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
