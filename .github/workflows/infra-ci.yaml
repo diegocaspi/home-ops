@@ -128,7 +128,9 @@ jobs:
           chmod 700 ~/.ssh
 
           # Process each SSH key and add to agent
-          echo "$MODULES_SSH_PRIVATE_KEY" | while IFS= read -r line; do
+          # Use process substitution instead of pipe to avoid subshell
+          current_key=""
+          while IFS= read -r line; do
             if [ -z "$current_key" ] && [[ "$line" == "-----BEGIN"* ]]; then
               current_key="$line"
             elif [ -n "$current_key" ]; then
@@ -147,7 +149,7 @@ jobs:
                 current_key=""
               fi
             fi
-          done
+          done < <(echo "$MODULES_SSH_PRIVATE_KEY")
 
           # Configure SSH to accept unknown host keys
           cat >> ~/.ssh/config <<EOF
