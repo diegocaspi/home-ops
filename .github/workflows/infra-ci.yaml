@@ -110,7 +110,7 @@ jobs:
             # Export to GITHUB_ENV with proper heredoc
             {
               echo "MODULES_SSH_PRIVATE_KEY<<EOF"
-              printf '%s' "$ssh_keys_joined"
+              printf '%s\n' "$ssh_keys_joined"
               echo "EOF"
             } >> $GITHUB_ENV
           fi
@@ -127,29 +127,57 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
 
-          # Process each SSH key and add to agent
-          # Use process substitution instead of pipe to avoid subshell
-          current_key=""
+          # Debug: Check if environment variable is set
+          if [ -z "$MODULES_SSH_PRIVATE_KEY" ]; then
+            echo "ERROR: MODULES_SSH_PRIVATE_KEY is empty"
+            exit 1
+          fi
+
+          echo "Processing SSH keys..."
+          echo "First 100 chars: ${MODULES_SSH_PRIVATE_KEY:0:100}"
+
+          # Write all keys to a single file first
+          keys_file=$(mktemp)
+          echo "$MODULES_SSH_PRIVATE_KEY" > "$keys_file"
+
+          # Split keys by BEGIN/END markers and add each one
+          key_count=0
+          temp_key=""
+          in_key=false
+
           while IFS= read -r line; do
-            if [ -z "$current_key" ] && [[ "$line" == "-----BEGIN"* ]]; then
-              current_key="$line"
-            elif [ -n "$current_key" ]; then
-              current_key="$current_key"$'\n'"$line"
-              if [[ "$line" == "-----END"* ]]; then
-                # Write key to temp file
-                temp_key=$(mktemp)
-                echo "$current_key" > "$temp_key"
-                chmod 600 "$temp_key"
+            if [[ "$line" == *"-----BEGIN"*"PRIVATE KEY-----"* ]]; then
+              in_key=true
+              temp_key="$line"
+            elif [[ "$in_key" == true ]]; then
+              temp_key="$temp_key"$'\n'"$line"
+
+              if [[ "$line" == *"-----END"*"PRIVATE KEY-----"* ]]; then
+                # Write this key to a temp file
+                key_file=$(mktemp)
+                echo "$temp_key" > "$key_file"
+                chmod 600 "$key_file"
 
                 # Add key to agent
-                ssh-add "$temp_key" 2>/dev/null || true
+                key_count=$((key_count + 1))
+                echo "Adding key #$key_count to SSH agent..."
+                if ssh-add "$key_file"; then
+                  echo "Successfully added key #$key_count"
+                else
+                  echo "Failed to add key #$key_count"
+                  cat "$key_file" | head -n 1  # Show first line for debugging
+                fi
 
                 # Clean up
-                rm -f "$temp_key"
-                current_key=""
+                rm -f "$key_file"
+                temp_key=""
+                in_key=false
               fi
             fi
-          done < <(echo "$MODULES_SSH_PRIVATE_KEY")
+          done < "$keys_file"
+
+          # Clean up
+          rm -f "$keys_file"
 
           # Configure SSH to accept unknown host keys
           cat >> ~/.ssh/config <<EOF
@@ -161,7 +189,7 @@ jobs:
 
           # List added keys
           echo "SSH keys loaded:"
-          ssh-add -l
+          ssh-add -l || echo "No keys loaded"
 
       - name: Terragrunt Plan
         uses: gruntwork-io/terragrunt-action@v3
