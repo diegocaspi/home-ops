@@ -59,18 +59,18 @@ jobs:
         id: generate-op-env
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
-          touch /tmp/op-env.tpl
+          touch .op-env.tpl
 
           # Add environment variables for each module
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> /tmp/op-env.tpl
-            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> /tmp/op-env.tpl
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> .op-env.tpl
+            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> .op-env.tpl
           done
 
-          cat /tmp/op-env.tpl
+          cat .op-env.tpl
 
       - uses: 1password/load-secrets-action/configure@v3
         with:
@@ -85,7 +85,7 @@ jobs:
           R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
           R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
           CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
-          OP_ENV_FILE: "/tmp/op-env.tpl"
+          OP_ENV_FILE: ".op-env.tpl"
 
       - name: Setup SSH Agent
         run: |
