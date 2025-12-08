@@ -29,7 +29,7 @@ locals {
 terraform {
   # Force OpenTofu/Terraform to keep trying to acquire a lock for
   # up to 20 minutes if someone else already has the lock
-  extra_arguments "retry_lock" {
+  extra_arguments "env_vars" {
     commands = [
       "init",
       "apply",
@@ -38,10 +38,6 @@ terraform {
       "plan",
       "taint",
       "untaint"
-    ]
-
-    arguments = [
-      "-lock-timeout=1m"
     ]
 
     env_vars = {

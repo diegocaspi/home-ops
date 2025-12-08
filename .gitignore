@@ -18,4 +18,4 @@ talos/clusterconfig
 
 # Terragrunt cache files
 **/.terragrunt-cache/
-**/.terraform*
+**/.terraform-cache*

@@ -1,5 +1,5 @@
 variable "host_name" {
-  description = "The IP address or hostname of the Proxmox VE host."
+  description = "The tailscale hostname of the Proxmox VE host."
   type        = string
 }
 

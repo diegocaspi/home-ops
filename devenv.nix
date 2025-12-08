@@ -14,7 +14,7 @@
     pkgs.talosctl pkgs.talhelper
 
     # Infrastructure
-    pkgs.terragrunt pkgs.opentofu
+    pkgs.terragrunt pkgs.opentofu pkgs.act
   ];
 
   dotenv.enable = true;
