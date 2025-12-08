@@ -99,9 +99,11 @@ jobs:
               echo "Adding SSH key for module: $module"
 
               # Accumulate keys
-              if [ -z "$ssh_keys" ]; then
+              if [ -n "$ssh_keys" ]; then
+                echo "DEBUG: ssh_keys is empty, assigning value"
                 ssh_keys="${!ssh_key_var}"
               else
+                echo "DEBUG: ssh_keys is not empty, concat value"
                 ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
               fi
             fi
