@@ -65,7 +65,7 @@ jobs:
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN=$(echo MY_VAR=PROXMOX_${env_name}_API_TOKEN op run --no-masking -- sh -c 'echo "$MY_VAR"')" >> $GITHUB_ENV
+            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token >> $GITHUB_ENV
             echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> $GITHUB_ENV
           done
 
@@ -99,11 +99,10 @@ jobs:
               echo "Adding SSH key for module: $module"
 
               # Accumulate keys
-              result=$(echo MY_VAR=${!ssh_key_var} op run --no-masking -- sh -c 'echo "$MY_VAR"')
               if [ -z "$ssh_keys" ]; then
-                ssh_keys="${!result}"
+                ssh_keys="${!ssh_key_var}"
               else
-                ssh_keys="${ssh_keys}"$'\n'"${!result}"
+                ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
               fi
             fi
           done
