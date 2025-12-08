@@ -87,42 +87,38 @@ jobs:
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
 
-          ssh_keys=''
-          # Add all SSH keys to agent - use process substitution to avoid subshell
+          # Combine all SSH keys with proper delimiter
+          ssh_keys_array=()
+
           while read -r module; do
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
             ssh_key_var="PROXMOX_${env_name}_SSH_KEY"
-            echo "DEBUG: processing ${env_name}..."
 
-            # Check if the SSH key variable exists and add it to the agent
+            # Check if the SSH key variable exists and add it to array
             if [ -n "${!ssh_key_var}" ]; then
-              echo "Adding SSH key for module: $module"
-
-              # Accumulate keys
-              if [ -z "$ssh_keys" ]; then
-                echo "DEBUG: ssh_keys is empty, assigning value"
-                ssh_keys="${!ssh_key_var}"
-              else
-                echo "DEBUG: ssh_keys is not empty, concat value"
-                ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
-              fi
+              echo "Found SSH key for module: $module"
+              # Trim whitespace and ensure proper format
+              ssh_key=$(echo "${!ssh_key_var}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+              ssh_keys_array+=("$ssh_key")
             fi
           done < <(echo "$MODULES" | jq -r '.[]')
 
-          if [ -n "$ssh_keys" ]; then
-            echo "DEBUG: exporting modules ssh keys"
-            # Use heredoc delimiter for multi-line content
+          if [ ${#ssh_keys_array[@]} -gt 0 ]; then
+            # Join keys with newline separator
+            printf -v ssh_keys_joined '%s\n' "${ssh_keys_array[@]}"
+
+            # Export to GITHUB_ENV with proper heredoc
             {
               echo "MODULES_SSH_PRIVATE_KEY<<EOF"
-              echo "$ssh_keys"
+              printf '%s' "$ssh_keys_joined"
               echo "EOF"
             } >> $GITHUB_ENV
           fi
 
       - uses: webfactory/ssh-agent@v0.9.0
+        if: env.MODULES_SSH_PRIVATE_KEY != ''
         with:
-          ssh-private-key: |
-            ${{ env.MODULES_SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ env.MODULES_SSH_PRIVATE_KEY }}
 
       - name: Terragrunt Plan
         uses: gruntwork-io/terragrunt-action@v3
