@@ -55,30 +55,23 @@ jobs:
           audience: ${{ secrets.TS_AUDIENCE }}
           tags: tag:ci
 
-      - uses: 1password/load-secrets-action/configure@v3
-        with:
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
       - name: Generate 1Password Secret Mappings
         id: generate-op-env
         run: |
           MODULES='${{ needs.detect-modules.outputs.modules }}'
-          touch ./.env.tpl
-
-          echo "R2_ACCESS_KEY=op://Homelab/cloudflare-r2/access-key" >> ./.env.tpl
-          echo "R2_ACCESS_SECRET=op://Homelab/cloudflare-r2/secret-key" >> ./.env.tpl
-          echo "CLOUDFLARE_ACCOUNT_ID=op://Homelab/cloudflare-r2/account-id" >> ./.env.tpl
 
           # Add environment variables for each module
           echo "$MODULES" | jq -r '.[]' | while read -r module; do
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            echo "PROXMOX_${env_name}_API_TOKEN=op://Homelab/proxmox-${module}/api-token" >> ./.env.tpl
-            echo "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key" >> ./.env.tpl
+            export "PROXMOX_${env_name}_API_TOKEN=$(echo MY_VAR=PROXMOX_${env_name}_API_TOKEN op run --no-masking -- sh -c 'echo "$MY_VAR"')
+            export "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key"
           done
 
-          cat ./.env.tpl
+      - uses: 1password/load-secrets-action/configure@v3
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Load Secrets from 1Password
         id: op
@@ -86,7 +79,9 @@ jobs:
         with:
           export-env: true
         env:
-          OP_ENV_FILE: "./.env.tpl"
+          R2_ACCESS_KEY: op://Homelab/cloudflare-r2/access-key
+          R2_ACCESS_SECRET: op://Homelab/cloudflare-r2/secret-key
+          CLOUDFLARE_ACCOUNT_ID: op://Homelab/cloudflare-r2/account-id
 
       - name: Setup SSH Agent
         run: |
@@ -104,10 +99,11 @@ jobs:
               echo "Adding SSH key for module: $module"
 
               # Accumulate keys
+              result=$(echo MY_VAR=${!ssh_key_var} op run --no-masking -- sh -c 'echo "$MY_VAR"')
               if [ -z "$ssh_keys" ]; then
-                ssh_keys="${!ssh_key_var}"
+                ssh_keys="${!result}"
               else
-                ssh_keys="${ssh_keys}"$'\n'"${!ssh_key_var}"
+                ssh_keys="${ssh_keys}"$'\n'"${!result}"
               fi
             fi
           done
