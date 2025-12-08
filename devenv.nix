@@ -39,7 +39,7 @@
     };
 
     infra-plan = {
-      exec = "terragrunt run --all plan --log-level trace";
+      exec = "terragrunt run --all --working-dir infrastructure plan";
       description = "Run terragrunt plan for all infrastructure modules";
     };
 
