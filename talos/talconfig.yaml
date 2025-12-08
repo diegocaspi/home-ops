@@ -11,9 +11,19 @@ nodes:
     installDisk: /dev/sda
     nodeLabels:
       physical-location: nas
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/qemu-guest-agent
   - hostname: workload
     controlPlane: false
     ipAddress: 192.168.2.124
     installDisk: /dev/sda
     nodeLabels:
       physical-location: nas
+    schematic:
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/qemu-guest-agent
