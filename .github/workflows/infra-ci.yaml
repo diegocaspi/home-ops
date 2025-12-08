@@ -65,7 +65,7 @@ jobs:
             # Convert module name to uppercase with underscores (e.g., hypnos -> HYPNOS)
             env_name=$(echo "$module" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-            export "PROXMOX_${env_name}_API_TOKEN=$(echo MY_VAR=PROXMOX_${env_name}_API_TOKEN op run --no-masking -- sh -c 'echo "$MY_VAR"')
+            export "PROXMOX_${env_name}_API_TOKEN=$(echo MY_VAR=PROXMOX_${env_name}_API_TOKEN op run --no-masking -- sh -c 'echo "$MY_VAR"')"
             export "PROXMOX_${env_name}_SSH_KEY=op://Homelab/proxmox-${module}-ssh/private_key"
           done
 
