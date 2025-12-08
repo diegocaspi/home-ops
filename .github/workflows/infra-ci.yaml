@@ -111,7 +111,12 @@ jobs:
 
           if [ -n "$ssh_keys" ]; then
             echo "DEBUG: exporting modules ssh keys"
-            echo "MODULES_SSH_PRIVATE_KEY=$ssh_keys" >> $GITHUB_ENV
+            # Use heredoc delimiter for multi-line content
+            {
+              echo "MODULES_SSH_PRIVATE_KEY<<EOF"
+              echo "$ssh_keys"
+              echo "EOF"
+            } >> $GITHUB_ENV
           fi
 
       - uses: webfactory/ssh-agent@v0.9.0
