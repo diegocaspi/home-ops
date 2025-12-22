@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dcaspi-dev
+spec:
+  secretName: dcaspi-dev-tls
+  secretTemplate:
+    annotations:
+      cert-manager.io/alt-names: "*.dcaspi.dev,dcaspi.dev"
+      cert-manager.io/certificate-name: dcaspi-dev
+      cert-manager.io/common-name: dcaspi.dev
+      cert-manager.io/ip-sans: ""
+      cert-manager.io/issuer-group: ""
+      cert-manager.io/issuer-kind: ClusterIssuer
+      cert-manager.io/issuer-name: letsencrypt-production
+      cert-manager.io/uri-sans: ""
+    labels:
+      controller.cert-manager.io/fao: "true"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: dcaspi.dev
+  dnsNames:
+    - dcaspi.dev
+    - "*.dcaspi.dev"
