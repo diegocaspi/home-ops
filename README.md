@@ -66,7 +66,7 @@ Once the VMs exist, they need an operating system—but not just any OS. Talos L
 
 The Talos layer centers around `talconfig.yaml`, which defines the entire cluster topology—how many nodes, their IP addresses, which ones are control plane vs workers, what version of Talos and Kubernetes to run. The tool `talhelper` takes this high-level configuration and generates the actual machine configs for each node, outputting them to `talos/clusterconfig/`. These configs include sensitive data like certificates and tokens, which is why `talsecret.sops.yaml` exists—it's encrypted using SOPS with age encryption, ensuring secrets never hit Git in plaintext.
 
-The beauty of this approach is reproducibility. The entire cluster configuration is captured in a single YAML file. If you needed to rebuild the cluster from scratch or add new nodes, you'd regenerate the configs with `talos-gen` and apply them with `talos-apply`. The `apply.sh` script orchestrates this by reading the `talconfig.yaml`, finding each node's config file, and applying it to the appropriate IP address.
+The beauty of this approach is reproducibility. The entire cluster configuration is captured in a single YAML file. If you needed to rebuild the cluster from scratch or add new nodes, you'd regenerate the configs with `just talos gen` and apply them with `just talos apply`. The `apply.sh` script orchestrates this by reading the `talconfig.yaml`, finding each node's config file, and applying it to the appropriate IP address.
 
 ### Layer 3️⃣: Bootstrap (`bootstrap/`)
 
@@ -94,9 +94,9 @@ This separation also provides clear boundaries for troubleshooting. Issues with 
 
 ## 🛠️ Development Environment
 
-The repository uses Nix and devenv to provide a reproducible development environment. Rather than documenting "please install these 10 tools at these specific versions," you simply enter the devenv shell and everything is there: `talosctl`, `talhelper`, `opentofu`, `terragrunt`, `helmfile`, `kubectl`, `flux`, `sops`, and more. The `devenv.nix` file defines not just the packages but also custom scripts that wrap common operations.
+The repository uses Nix and devenv to provide a reproducible development environment. Rather than documenting "please install these 10 tools at these specific versions," you simply enter the devenv shell and everything is there: `just`, `talosctl`, `talhelper`, `opentofu`, `terragrunt`, `helmfile`, `kubectl`, `flux`, `sops`, and more. Common operational commands are exposed through `just` recipes and the remaining devenv scripts.
 
-Commands like `infra-plan`, `infra-apply`, `talos-gen`, `talos-encrypt`, `talos-apply`, and `boot` are all defined as devenv scripts. This creates a consistent interface across all layers—you don't need to remember the exact `talhelper` incantation to generate configs or the specific `sops` flags for encryption. The scripts handle those details, and the commands are self-documenting through their descriptions.
+Talos commands are organized under the `talos` just module: `just talos gen`, `just talos encrypt`, and `just talos apply`. Compatibility recipes for `just talos-gen`, `just talos-encrypt`, and `just talos-apply` are also available while the repository migrates the rest of the command surface from devenv scripts.
 
 Environment variables are loaded automatically from `.env` via devenv's dotenv integration. This is where sensitive credentials live—Cloudflare R2 credentials for Terragrunt remote state, Proxmox API tokens for each host. The `infrastructure/root.hcl` Terragrunt configuration dynamically constructs environment variable names based on the host being managed, allowing multiple Proxmox servers to coexist with their own credentials.
 
