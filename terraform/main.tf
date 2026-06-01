@@ -27,13 +27,21 @@ locals {
 
 module "flux_operator_bootstrap" {
   source = "controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes"
-
   revision = var.bootstrap_revision
+
+  job = {
+    host_network = true
+  }
 
   gitops_resources = {
     instance_yaml = file("${path.root}/../kubernetes/clusters/${var.cluster_name}/flux-system/flux-instance.yaml")
     operator_chart = {
       values_yaml = file("${path.root}/../kubernetes/clusters/${var.cluster_name}/flux-system/flux-operator-values.yaml")
+    }
+    prerequisites = {
+      charts = [
+        { name = "cilium", repository = "quay.io/cilium/charts/cilium", namespace = "kube-system" },
+      ]
     }
   }
 
