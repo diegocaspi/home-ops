@@ -1,29 +1,29 @@
 ---
 clusterName: nova
-talosVersion: v1.11.5
-kubernetesVersion: v1.34.0
-endpoint: https://192.168.2.40:6443
+talosVersion: v1.13.3
+kubernetesVersion: v1.36.0
+endpoint: https://192.168.2.144:6443
 allowSchedulingOnMasters: true
 nodes:
   - hostname: controlplane
     controlPlane: true
-    ipAddress: 192.168.2.40
-    installDisk: /dev/sda
+    ipAddress: 192.168.2.144
+    installDisk: /dev/nvme0n1
     nodeLabels:
-      physical-location: nas
+      location: tpi
     schematic:
       customization:
         systemExtensions:
           officialExtensions:
-            - siderolabs/qemu-guest-agent
+            - siderolabs/rockchip-rknn
   - hostname: workload
     controlPlane: false
-    ipAddress: 192.168.2.124
-    installDisk: /dev/sda
+    ipAddress: 192.168.2.19
+    installDisk: /dev/nvme0n1
     nodeLabels:
-      physical-location: nas
+      location: tpi
     schematic:
       customization:
         systemExtensions:
           officialExtensions:
-            - siderolabs/qemu-guest-agent
+            - siderolabs/rockchip-rknn
