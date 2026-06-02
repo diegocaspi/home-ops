@@ -13,6 +13,6 @@ data:
   ARTIFACT_TAG: latest
   ENVIRONMENT: prod
   CLUSTER_NAME: nova
-  CLUSTER_DOMAIN: dcaspi.dev
+  CLUSTER_DOMAIN: nova.dcaspi.dev
   ARTIFACT_SUBJECT_WORKFLOW: push-artifact
   ARTIFACT_SUBJECT_GIT_REF: refs/heads/main
