@@ -8,7 +8,8 @@ on:
     tags:
       - "*"
     paths:
-      - kubernetes/
+      - "kubernetes/**"
+      - ".github/workflows/push-artifact.yaml"
 
 jobs:
   flux-push:
@@ -50,7 +51,12 @@ jobs:
           diff-tag: ${{ steps.prep.outputs.tag }}
           tags: ${{ steps.prep.outputs.version }}
       - name: Sign artifact
-        if: steps.push.outputs.pushed == 'true'
-        run: cosign sign --yes $DIGEST_URL
+        run: |
+          if [[ -n "${DIGEST_URL}" ]]; then
+            cosign sign --yes "${DIGEST_URL}"
+          else
+            cosign sign --yes "${TAG_URL}"
+          fi
         env:
           DIGEST_URL: ${{ steps.push.outputs.digest-url }}
+          TAG_URL: ghcr.io/${{ github.repository }}:${{ steps.prep.outputs.tag }}
