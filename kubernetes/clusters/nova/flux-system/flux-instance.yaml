@@ -20,7 +20,7 @@ spec:
     size: medium
     multitenant: true
     tenantDefaultServiceAccount: flux
-    networkPolicy: true
+    networkPolicy: false
     domain: "cluster.local"
   sync:
     kind: OCIRepository
