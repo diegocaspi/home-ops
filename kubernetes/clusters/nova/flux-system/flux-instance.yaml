@@ -26,7 +26,7 @@ spec:
     kind: OCIRepository
     url: "oci://ghcr.io/diegocaspi/home-ops"
     ref: "latest"
-    path: "kubernetes/clusters/nova"
+    path: "clusters/nova"
     pullSecret: "ghcr-auth"
   kustomize:
     patches:
