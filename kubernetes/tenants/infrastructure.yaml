@@ -1,12 +1,11 @@
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
-  name: infra
+  name: infrastructure
   namespace: flux-system
   annotations:
     fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
-  dependsOn:
   inputs:
     - tenant: "kube-system"
       tag: "${ARTIFACT_TAG}"
@@ -57,7 +56,7 @@ spec:
     - apiVersion: source.toolkit.fluxcd.io/v1
       kind: OCIRepository
       metadata:
-        name: infra
+        name: infrastructure
         namespace: << inputs.tenant >>
       spec:
         interval: 5m
@@ -73,7 +72,7 @@ spec:
     - apiVersion: kustomize.toolkit.fluxcd.io/v1
       kind: Kustomization
       metadata:
-        name: infra-controllers
+        name: infrastructure-controllers
         namespace: << inputs.tenant >>
       spec:
         targetNamespace: << inputs.tenant >>
@@ -84,7 +83,7 @@ spec:
         timeout: 5m
         sourceRef:
           kind: OCIRepository
-          name: infra
+          name: infrastructure
         path: "./infrastructure/<< inputs.tenant >>/controllers/<< inputs.clusterName >>"
         prune: true
         postBuild:
@@ -94,11 +93,11 @@ spec:
     - apiVersion: kustomize.toolkit.fluxcd.io/v1
       kind: Kustomization
       metadata:
-        name: infra-configs
+        name: infrastructure-configs
         namespace: << inputs.tenant >>
       spec:
         dependsOn:
-          - name: infra-controllers
+          - name: infrastructure-controllers
         targetNamespace: << inputs.tenant >>
         serviceAccountName: flux
         interval: 30m
@@ -107,7 +106,7 @@ spec:
         timeout: 5m
         sourceRef:
           kind: OCIRepository
-          name: infra
+          name: infrastructure
         path: "./infrastructure/<< inputs.tenant >>/configs/<< inputs.clusterName >>"
         prune: true
         postBuild:
