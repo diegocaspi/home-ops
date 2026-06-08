@@ -17,20 +17,34 @@ locals {
   ghcr_auth_dockerconfigjson = jsonencode({
     auths = {
       "ghcr.io" = {
-        username = "flux"
+        username = "diegocaspi"
         password = var.oci_token
-        auth     = base64encode("flux:${var.oci_token}")
+        auth     = base64encode("diegocaspi:${var.oci_token}")
       }
     }
   })
 }
 
 module "flux_operator_bootstrap" {
-  source = "controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes"
+  source   = "controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes"
+  version    = "0.7.0"
   revision = var.bootstrap_revision
+
+  common_metadata = {
+    labels = {
+      "pod-security.kubernetes.io/enforce" = "privileged"
+      "pod-security.kubernetes.io/audit"   = "baseline"
+      "pod-security.kubernetes.io/warn"    = "baseline"
+    }
+  }
 
   job = {
     host_network = true
+    tolerations = [
+      {
+        operator = "Exists"
+      },
+    ]
   }
 
   gitops_resources = {
@@ -40,7 +54,12 @@ module "flux_operator_bootstrap" {
     }
     prerequisites = {
       charts = [
-        { name = "cilium", repository = "quay.io/cilium/charts/cilium", namespace = "kube-system" },
+        {
+          name        = "cilium",
+          repository  = "quay.io/cilium/charts/cilium",
+          namespace   = "kube-system",
+          values_yaml = file("${path.root}/../kubernetes/infrastructure/kube-system/controllers/${var.cluster_name}/cilium.values.yaml")
+        },
       ]
     }
   }

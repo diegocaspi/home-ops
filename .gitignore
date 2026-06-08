@@ -9,6 +9,10 @@ vendor/
 node_modules/
 tmp/
 
+**/.terraform
+**/.terraform.*
+**/terraform.tfstate*
+
 .devenv*
 .dirnev
 

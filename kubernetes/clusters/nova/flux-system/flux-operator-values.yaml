@@ -3,3 +3,8 @@ multitenancy:
   defaultServiceAccount: flux-operator
 reporting:
   interval: 45s
+web:
+  networkPolicy:
+    create: false
+tolerations:
+  - operator: Exists
