@@ -111,13 +111,13 @@ What these recipes do:
 Bootstrap is handled from `terraform/` through the Flux Operator bootstrap module.
 
 ```bash
-OCI_TOKEN=... just terraform bootstrap-nova
+OCI_TOKEN=... ONEPASSWORD_TOKEN=... just terraform bootstrap-nova
 ```
 
 The recipe:
 
 - Chooses `tofu` when available, otherwise falls back to `terraform`.
-- Sets `TF_VAR_oci_token`, `TF_VAR_cluster_name=nova`, and `TF_VAR_cluster_region=tpi`.
+- Sets `TF_VAR_oci_token`, `TF_VAR_onepassword_token`, `TF_VAR_cluster_name=nova`, and `TF_VAR_cluster_region=tpi`.
 - Runs `init` and `apply` in `terraform/`.
 
 The Terraform module installs the Flux Operator bootstrap resources and uses repository-local manifests for:
@@ -127,6 +127,7 @@ The Terraform module installs the Flux Operator bootstrap resources and uses rep
 - Cilium bootstrap values: `kubernetes/infrastructure/kube-system/controllers/nova/cilium.values.yaml`
 - Runtime information such as `CLUSTER_REGION`
 - A `ghcr-auth` pull secret for the Flux OCI source
+- The `external-secrets` namespace and `onepassword-connect-token` secret required before External Secrets reconciles its steady-state manifests
 
 The Kubernetes and Helm providers currently use:
 
@@ -155,8 +156,9 @@ Inside the cluster entrypoint, `kubernetes/clusters/nova/tenants.yaml` tells Flu
 Secrets are expected to stay encrypted or local:
 
 - `talos/talsecret.sops.yaml` is encrypted with SOPS.
-- `.env` is ignored by Git and can hold local tokens such as `OCI_TOKEN`.
+- `.env` is ignored by Git and can hold local tokens such as `OCI_TOKEN` and `ONEPASSWORD_TOKEN`.
 - Terraform receives the GHCR token through `TF_VAR_oci_token`, set by the `just terraform bootstrap-nova` recipe.
+- Terraform receives the 1Password token through `TF_VAR_onepassword_token`, set by the same recipe.
 
 ## Useful Commands
 
@@ -165,7 +167,7 @@ just --list
 just talos gen
 just talos apply
 just talos kubeconfig
-OCI_TOKEN=... just terraform bootstrap-nova
+OCI_TOKEN=... ONEPASSWORD_TOKEN=... just terraform bootstrap-nova
 ```
 
 ## Further Reading
