@@ -5,6 +5,13 @@ variable "oci_token" {
   nullable    = false
 }
 
+variable "onepassword_token" {
+  description = "1Password API token for secrets management."
+  sensitive   = true
+  type        = string
+  nullable    = false
+}
+
 variable "cluster_name" {
   description = "Name of the cluster directory under clusters/ (e.g. staging, prod-eu)."
   type        = string

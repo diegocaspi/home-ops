@@ -23,11 +23,28 @@ locals {
       }
     }
   })
+
+  external_secrets_namespace_yaml = <<-YAML
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: external-secrets
+  YAML
+
+  onepassword_connect_token_secret_yaml = <<-YAML
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: onepassword-connect-token
+      namespace: external-secrets
+    type: Opaque
+    stringData:
+      token: '${replace(var.onepassword_token, "'", "''")}'
+  YAML
 }
 
 module "flux_operator_bootstrap" {
   source   = "controlplaneio-fluxcd/flux-operator-bootstrap/kubernetes"
-  version    = "0.7.0"
   revision = var.bootstrap_revision
 
   common_metadata = {
@@ -53,6 +70,10 @@ module "flux_operator_bootstrap" {
       values_yaml = file("${path.root}/../kubernetes/clusters/${var.cluster_name}/flux-system/flux-operator-values.yaml")
     }
     prerequisites = {
+      yamls = [
+        local.external_secrets_namespace_yaml,
+        local.onepassword_connect_token_secret_yaml
+      ]
       charts = [
         {
           name        = "cilium",
