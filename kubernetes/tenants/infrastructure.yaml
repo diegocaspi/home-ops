@@ -17,6 +17,11 @@ spec:
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+    - tenant: "cert-manager"
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
   resources:
     - apiVersion: v1
       kind: Namespace
