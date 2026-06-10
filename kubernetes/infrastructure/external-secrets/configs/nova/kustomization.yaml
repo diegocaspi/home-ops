@@ -4,4 +4,4 @@ kind: Kustomization
 
 resources:
   - cluster-secret-store.yaml
-  - external-secret.yaml
+  - external-secrets.yaml
