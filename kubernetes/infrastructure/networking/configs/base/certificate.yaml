@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dcaspi-dev
+spec:
+  dnsNames:
+    - dcaspi.dev
+    - "*.dcaspi.dev"
+  duration: 160h
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  secretName: dcaspi-dev-tls
+  usages:
+    - digital signature
+
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/external-secrets.io/pushsecret_v1alpha1.json
+apiVersion: external-secrets.io/v1alpha1
+kind: PushSecret
+metadata:
+  name: dcaspi-dev-tls
+spec:
+  secretStoreRefs:
+    - name: onepassword
+      kind: ClusterSecretStore
+  selector:
+    secret:
+      name: dcaspi-dev-tls
+  template:
+    data:
+      tls.crt: '{{ index . "tls.crt" | b64enc }}'
+      tls.key: '{{ index . "tls.key" | b64enc }}'
+  data:
+    - match:
+        secretKey: &key tls.crt
+        remoteRef:
+          remoteKey: dcaspi-dev-tls
+          property: *key
+    - match:
+        secretKey: &key tls.key
+        remoteRef:
+          remoteKey: dcaspi-dev-tls
+          property: *key
