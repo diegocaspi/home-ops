@@ -6,6 +6,7 @@ metadata:
   name: dcaspi-dev
 spec:
   dnsNames:
+    - dcaspi.dev
     - "*.dcaspi.dev"
   duration: 160h
   issuerRef:
