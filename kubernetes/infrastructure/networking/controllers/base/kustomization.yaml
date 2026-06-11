@@ -7,3 +7,4 @@ resources:
   - kgateway.yaml
   - cloudflare-dns.yaml
   # - cloudflare-tunnel.yaml
+  - external-secrets.yaml

@@ -4,5 +4,4 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - dns-endpoint.yaml
-  - external-secrets.yaml
   - gateway.yaml
