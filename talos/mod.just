@@ -6,7 +6,18 @@ gen:
 
 # Encrypt the Talos secrets file using sops
 encrypt:
-    sops --config {{ repo }}/.sops.yaml -e -i {{ repo }}/talos/talsecret.sops.yaml
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    secrets="{{ repo }}/talos/talsecret.sops.yaml"
+    status="$(sops filestatus "$secrets")"
+
+    if [[ "$status" == *'"encrypted":true'* ]]; then
+      echo "$secrets is already encrypted"
+      exit 0
+    fi
+
+    sops --config {{ repo }}/.sops.yaml -e -i "$secrets"
 
 # Apply Talos configuration to the cluster nodes
 apply:

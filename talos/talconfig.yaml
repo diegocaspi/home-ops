@@ -4,6 +4,42 @@ talosVersion: v1.13.3
 kubernetesVersion: v1.36.0
 endpoint: https://192.168.2.144:6443
 allowSchedulingOnMasters: true
+controlPlane:
+  volumes:
+    - name: EPHEMERAL
+      provisioning:
+        maxSize: 80GiB
+  userVolumes:
+    - name: longhorn
+      provisioning:
+        diskSelector:
+          match: disk.transport == "nvme"
+        minSize: 10GiB
+        grow: true
+worker:
+  volumes:
+    - name: EPHEMERAL
+      provisioning:
+        maxSize: 80GiB
+  userVolumes:
+    - name: longhorn
+      provisioning:
+        diskSelector:
+          match: disk.transport == "nvme"
+        minSize: 10GiB
+        grow: true
+patches:
+  - |-
+    machine:
+      kubelet:
+        extraMounts:
+          - destination: /var/mnt/longhorn
+            type: bind
+            source: /var/mnt/longhorn
+            options:
+              - bind
+              - rshared
+              - rw
 nodes:
   - hostname: controlplane
     controlPlane: true
@@ -11,19 +47,59 @@ nodes:
     installDisk: /dev/nvme0n1
     nodeLabels:
       location: tpi
-    schematic:
+      node.longhorn.io/create-default-disk: "true"
+    machineSpec:
+      arch: arm64
+      bootMethod: disk-image
+      imageSuffix: raw.xz
+    imageSchematic:
+      overlay:
+        image: siderolabs/sbc-rockchip
+        name: turingrk1
       customization:
         systemExtensions:
           officialExtensions:
+            - siderolabs/iscsi-tools
             - siderolabs/rockchip-rknn
+            - siderolabs/util-linux-tools
+    schematic:
+      overlay:
+        image: siderolabs/sbc-rockchip
+        name: turingrk1
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/iscsi-tools
+            - siderolabs/rockchip-rknn
+            - siderolabs/util-linux-tools
   - hostname: workload
     controlPlane: false
     ipAddress: 192.168.2.19
     installDisk: /dev/nvme0n1
     nodeLabels:
       location: tpi
-    schematic:
+      node.longhorn.io/create-default-disk: "true"
+    machineSpec:
+      arch: arm64
+      bootMethod: disk-image
+      imageSuffix: raw.xz
+    imageSchematic:
+      overlay:
+        image: siderolabs/sbc-rockchip
+        name: turingrk1
       customization:
         systemExtensions:
           officialExtensions:
+            - siderolabs/iscsi-tools
             - siderolabs/rockchip-rknn
+            - siderolabs/util-linux-tools
+    schematic:
+      overlay:
+        image: siderolabs/sbc-rockchip
+        name: turingrk1
+      customization:
+        systemExtensions:
+          officialExtensions:
+            - siderolabs/iscsi-tools
+            - siderolabs/rockchip-rknn
+            - siderolabs/util-linux-tools
