@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: vm-k8s-stack
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: 0.83.0
+  url: oci://ghcr.io/victoriametrics/helm-charts/victoria-metrics-k8s-stack
+
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vm-k8s-stack
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: vm-k8s-stack
+  interval: 1h
+  values:
+    tenant: "0"
+    grafana:
+      enabled: false
+    vmsingle:
+      enabled: true
+      spec:
+        # -- Data retention period. Possible units character: h(ours), d(ays), w(eeks), y(ears), if no unit character specified - month. The minimum retention period is 24h. See these [docs](https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#retention)
+        retentionPeriod: "1"
+        replicaCount: 1
+        storage:
+          storageClassName: longhorn
+          resources:
+            requests:
+              storage: 30Gi
+      route:
+        enabled: true
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: http
+            namespace: networking
+        hostnames:
+          - vm.dcaspi.dev

@@ -37,6 +37,12 @@ spec:
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "privileged"
+    - tenant: "011y"
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
   resources:
     - apiVersion: v1
       kind: Namespace
