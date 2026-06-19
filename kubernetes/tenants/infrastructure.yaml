@@ -12,26 +12,38 @@ spec:
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
     - tenant: "external-secrets"
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
     - tenant: "cert-manager"
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
     - tenant: "networking"
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
+    - tenant: "longhorn-system"
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "privileged"
   resources:
     - apiVersion: v1
       kind: Namespace
       metadata:
         name: << inputs.tenant >>
+        labels:
+          pod-security.kubernetes.io/enforce: << inputs.podSecurityEnforce >>
     - apiVersion: v1
       kind: ConfigMap
       metadata:
