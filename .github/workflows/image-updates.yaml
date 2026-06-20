@@ -24,6 +24,6 @@ jobs:
         run: |
           gh pr create \
             --repo=${GITHUB_REPO} \
-            --head=image-updates \
+            --head=chore/image-updates \
             --base=main \
             --fill-first
