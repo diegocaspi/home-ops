@@ -40,6 +40,15 @@ spec:
       storageOverProvisioningPercentage: 100
     longhornUI:
       replicas: 1
+    httproute:
+      enabled: true
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: http-internal
+          namespace: networking
+      hostnames:
+        - longhorn.dcaspi.dev
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 2
