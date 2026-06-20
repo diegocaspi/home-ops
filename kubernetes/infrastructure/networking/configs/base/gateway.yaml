@@ -5,15 +5,52 @@ kind: Gateway
 metadata:
   name: http
   namespace: kgateway-system
+  annotations:
+    external-dns.alpha.kubernetes.io/target: &hostname external.dcaspi.dev
 spec:
   gatewayClassName: kgateway
+  infrastructure:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: *hostname
   listeners:
     - protocol: HTTP
       port: 80
       name: http
       allowedRoutes:
         namespaces:
+          from: Same
+    - name: https
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
           from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: dcaspi-dev-tls
+
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/gateway_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: http-internal
+  namespace: kgateway-system
+  annotations:
+    external-dns.alpha.kubernetes.io/target: &hostname internal.dcaspi.dev
+spec:
+  gatewayClassName: kgateway
+  infrastructure:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: *hostname
+  listeners:
+    - protocol: HTTP
+      port: 80
+      name: http
+      allowedRoutes:
+        namespaces:
+          from: Same
     - name: https
       protocol: HTTPS
       port: 443
@@ -36,6 +73,9 @@ metadata:
 spec:
   parentRefs:
     - name: http
+      namespace: networking
+      sectionName: http
+    - name: http-internal
       namespace: networking
       sectionName: http
   rules:
