@@ -1,0 +1,151 @@
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: image-update-automation
+  namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "5m"
+spec:
+  dependsOn:
+    - apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      name: imageupdateautomations.image.toolkit.fluxcd.io
+  inputs:
+    - namespace: "infrastructure"
+      repository: "https://github.com/diegocaspi/home-ops.git"
+      pushBranch: "chore/image-updates"
+  resources:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: << inputs.namespace >>
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: flux-runtime-info
+        namespace: << inputs.namespace >>
+        annotations:
+          fluxcd.controlplane.io/copyFrom: "flux-system/flux-runtime-info"
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: github-auth
+        namespace: << inputs.namespace >>
+        annotations:
+          fluxcd.controlplane.io/copyFrom: "flux-system/github-auth"
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: flux
+        namespace: << inputs.namespace >>
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: flux
+        namespace: << inputs.namespace >>
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+        - kind: ServiceAccount
+          name: flux
+          namespace: << inputs.namespace >>
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: GitRepository
+      metadata:
+        name: << inputs.namespace >>
+        namespace: << inputs.namespace >>
+      spec:
+        interval: 10m
+        ref:
+          branch: main
+        secretRef:
+          name: github-auth
+        url: << inputs.repository >>
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: << inputs.namespace >>
+        namespace: << inputs.namespace >>
+      spec:
+        serviceAccountName: flux
+        targetNamespace: << inputs.namespace >>
+        interval: 30m
+        retryInterval: 5m
+        wait: true
+        timeout: 5m
+        sourceRef:
+          kind: GitRepository
+          name: << inputs.namespace >>
+        path: "./update-policies/<< inputs.namespace >>"
+        prune: true
+        postBuild:
+          substituteFrom:
+            - kind: ConfigMap
+              name: flux-runtime-info
+    - apiVersion: image.toolkit.fluxcd.io/v1
+      kind: ImageUpdateAutomation
+      metadata:
+        name: << inputs.namespace >>
+        namespace: << inputs.namespace >>
+      spec:
+        interval: 30m
+        sourceRef:
+          kind: GitRepository
+          name: << inputs.namespace >>
+        git:
+          checkout:
+            ref:
+              branch: main
+          commit:
+            author:
+              email: controlplaneio-fluxcd-bot@users.noreply.github.com
+              name: controlplaneio-fluxcd-bot
+            messageTemplate: |
+              chore(images): 🤖 automated image update
+
+              Automated image update detected new image references and opened this PR.
+
+              ## 🔄 Image changes
+
+              {{- if .Changed.Objects }}
+
+              | Kind                                                 | Object                 | Old value                | New value                |
+              | ---------------------------------------------------- | ---------------------- | ------------------------ | ------------------------ |
+              | {{- range $resource, $changes := .Changed.Objects }} |                        |                          |                          |
+              | {{- range $_, $change := $changes }}                 |                        |                          |                          |
+              | `{{ $resource.Kind }}`                               | `{{ $resource.Name }}` | `{{ $change.OldValue }}` | `{{ $change.NewValue }}` |
+              | {{- end }}                                           |                        |                          |                          |
+              | {{- end }}                                           |                        |                          |                          |
+
+              {{- else }}
+
+              No object-level image changes detected.
+
+              {{- end }}
+
+              ## 📁 Files touched
+
+              {{- if .Changed.FileChanges }}
+
+              | File                                               |
+              | -------------------------------------------------- |
+              | {{- range $filename, $_ := .Changed.FileChanges }} |
+              | `{{ $filename }}`                                  |
+              | {{- end }}                                         |
+
+              {{- else }}
+
+              No files changed.
+
+              {{- end }}
+
+              ---
+
+              🤖 This PR was created automatically. Please review and merge if the image updates look good.
+          push:
+            branch: << inputs.pushBranch >>
+        update:
+          path: "./<< inputs.namespace >>"
+          strategy: Setters
