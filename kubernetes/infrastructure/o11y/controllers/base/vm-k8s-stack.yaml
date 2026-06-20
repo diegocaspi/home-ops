@@ -25,6 +25,7 @@ spec:
     name: vm-k8s-stack
   interval: 1h
   values:
+    fullnameOverride: vmks
     tenant: "0"
     grafana:
       enabled: false
