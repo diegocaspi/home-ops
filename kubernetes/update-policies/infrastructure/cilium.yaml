@@ -1,0 +1,21 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: cilium
+spec:
+  image: "quay.io/cilium/charts/cilium"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: cilium
+spec:
+  imageRepositoryRef:
+    name: cilium
+  policy:
+    semver:
+      range: ">=1.0.0"
