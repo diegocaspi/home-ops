@@ -8,3 +8,4 @@ resources:
   - cloudflare-dns.yaml
   - cloudflare-tunnel.yaml
   - external-secrets.yaml
+  - unifi-dns.yaml
