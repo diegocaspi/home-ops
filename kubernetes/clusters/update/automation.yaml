@@ -78,7 +78,7 @@ spec:
         sourceRef:
           kind: GitRepository
           name: << inputs.namespace >>
-        path: "./update-policies/<< inputs.namespace >>"
+        path: "./kubernetes/update-policies/<< inputs.namespace >>"
         prune: true
         postBuild:
           substituteFrom:
@@ -147,5 +147,5 @@ spec:
           push:
             branch: << inputs.pushBranch >>
         update:
-          path: "./<< inputs.namespace >>"
+          path: "./kubernetes/<< inputs.namespace >>"
           strategy: Setters
