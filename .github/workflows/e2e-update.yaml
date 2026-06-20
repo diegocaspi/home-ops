@@ -18,7 +18,7 @@ jobs:
       - name: Setup Helm
         uses: fluxcd/pkg/actions/helm@main
       - name: Setup Just
-        uses: just-install/just-action@main
+        uses: extractions/setup-just@v3
       - name: Setup Kubernetes
         uses: helm/kind-action@main
       - name: Bootstrap Flux
