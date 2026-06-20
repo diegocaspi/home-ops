@@ -34,6 +34,7 @@ spec:
       createDefaultDiskLabeledNodes: true
       defaultDataPath: /var/mnt/longhorn
       defaultReplicaCount: 2
+      nodeDrainPolicy: allow-if-replica-is-stopped
       orphanAutoDeletion: true
       replicaAutoBalance: best-effort
       storageMinimalAvailablePercentage: 15
