@@ -6,5 +6,12 @@ reporting:
 web:
   networkPolicy:
     create: false
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: http-internal
+        namespace: networking
+    hostnames:
+      - flux.dcaspi.dev
 tolerations:
   - operator: Exists
