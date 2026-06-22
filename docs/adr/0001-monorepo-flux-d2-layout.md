@@ -1,0 +1,3 @@
+# Monorepo Flux D2 Layout
+
+`home-ops` uses a monorepo adaptation of the Flux D2 reference architecture: fleet, infrastructure, and application concerns live in one repository, while Flux still reconciles signed OCI artifacts through Flux Operator, FluxInstance, ResourceSet, and OCIRepository resources. The repository publishes the `kubernetes/` tree as one signed OCI artifact containing the fleet, infrastructure, and apps layers; this trades the stronger repository-level and artifact-level separation of the standard multi-repo D2 layout for a simpler operating model that fits a production-style homelab while preserving the D2 delivery and verification pattern.
