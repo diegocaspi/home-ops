@@ -1,0 +1,43 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: kgateway
+spec:
+  image: "oci://cr.kgateway.dev/kgateway-dev/charts/kgateway"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: kgateway
+spec:
+  imageRepositoryRef:
+    name: kgateway
+  policy:
+    semver:
+      range: ">=2.0.0"
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: kgateway-crds
+spec:
+  image: "oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: kgateway-crds
+spec:
+  imageRepositoryRef:
+    name: kgateway-crds
+  policy:
+    semver:
+      range: ">=2.0.0"

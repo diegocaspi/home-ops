@@ -1,0 +1,21 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: external-dns
+spec:
+  image: "oci://ghcr.io/home-operations/charts-mirror/external-dns"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: external-dns
+spec:
+  imageRepositoryRef:
+    name: external-dns
+  policy:
+    semver:
+      range: ">=1.0.0"

@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 2.3.1
+    tag: 2.3.1 # {"$imagepolicy": "infrastructure:kgateway:tag"}
   url: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway
 
 ---

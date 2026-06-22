@@ -1,0 +1,21 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: bjw-app-template
+spec:
+  image: "oci://ghcr.io/bjw-s-labs/helm/app-template"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: bjw-app-template
+spec:
+  imageRepositoryRef:
+    name: bjw-app-template
+  policy:
+    semver:
+      range: ">=5.0.0"

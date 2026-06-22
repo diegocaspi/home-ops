@@ -1,0 +1,21 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: vm-k8s-stack
+spec:
+  image: "oci://ghcr.io/victoriametrics/helm-charts/victoria-metrics-k8s-stack"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: vm-k8s-stack
+spec:
+  imageRepositoryRef:
+    name: vm-k8s-stack
+  policy:
+    semver:
+      range: ">=0.80.0"
