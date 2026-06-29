@@ -4,7 +4,7 @@ kind: ImageRepository
 metadata:
   name: external-dns
 spec:
-  image: "oci://ghcr.io/home-operations/charts-mirror/external-dns"
+  image: "ghcr.io/home-operations/charts-mirror/external-dns"
   interval: 12h
   provider: generic
 

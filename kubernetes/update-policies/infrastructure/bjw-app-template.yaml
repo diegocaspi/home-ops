@@ -4,7 +4,7 @@ kind: ImageRepository
 metadata:
   name: bjw-app-template
 spec:
-  image: "oci://ghcr.io/bjw-s-labs/helm/app-template"
+  image: "ghcr.io/bjw-s-labs/helm/app-template"
   interval: 12h
   provider: generic
 

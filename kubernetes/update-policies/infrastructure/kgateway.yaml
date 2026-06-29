@@ -4,7 +4,7 @@ kind: ImageRepository
 metadata:
   name: kgateway
 spec:
-  image: "oci://cr.kgateway.dev/kgateway-dev/charts/kgateway"
+  image: "cr.kgateway.dev/kgateway-dev/charts/kgateway"
   interval: 12h
   provider: generic
 
@@ -26,7 +26,7 @@ kind: ImageRepository
 metadata:
   name: kgateway-crds
 spec:
-  image: "oci://cr.kgateway.dev/kgateway-dev/charts/kgateway-crds"
+  image: "cr.kgateway.dev/kgateway-dev/charts/kgateway-crds"
   interval: 12h
   provider: generic
 

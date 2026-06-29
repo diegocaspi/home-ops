@@ -4,7 +4,7 @@ kind: ImageRepository
 metadata:
   name: vm-k8s-stack
 spec:
-  image: "oci://ghcr.io/victoriametrics/helm-charts/victoria-metrics-k8s-stack"
+  image: "ghcr.io/victoriametrics/helm-charts/victoria-metrics-k8s-stack"
   interval: 12h
   provider: generic
 
