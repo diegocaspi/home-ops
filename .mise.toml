@@ -1,2 +1,13 @@
 [tools]
+cosign = "latest"
+flux2 = "latest"
+helm = "latest"
+just = "latest"
+kubeconform = "latest"
+kubectl = "latest"
+kustomize = "latest"
 opentofu = "1.10.7"
+sops = "latest"
+talhelper = "latest"
+talosctl = "latest"
+yq = "latest"
