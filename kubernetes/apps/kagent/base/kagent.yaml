@@ -67,7 +67,9 @@ spec:
     providers:
       default: openAI
       openAI:
-        apiKeySecretKey: OPENAI_API_KEY
+        apiKeySecretKey: API_KEY
         apiKeySecretRef: kagent-openai
-        model: gpt-4.1-mini
+        model: kimi-k2.6
         provider: OpenAI
+        openAI:
+          baseUrl: "https://opencode.ai/zen/v1"
