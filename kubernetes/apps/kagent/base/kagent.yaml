@@ -1,0 +1,73 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kagent-crds
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: 0.9.12
+  url: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kagent-crds
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kagent-crds
+  install:
+    strategy:
+      name: RetryOnFailure
+  interval: 1h
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kagent
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    tag: 0.9.12
+  url: oci://ghcr.io/kagent-dev/kagent/helm/kagent
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kagent
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kagent
+  dependsOn:
+    - name: kagent-crds
+  install:
+    strategy:
+      name: RetryOnFailure
+  interval: 1h
+  timeout: 10m
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+  values:
+    providers:
+      default: openAI
+      openAI:
+        apiKeySecretKey: OPENAI_API_KEY
+        apiKeySecretRef: kagent-openai
+        model: gpt-4.1-mini
+        provider: OpenAI
