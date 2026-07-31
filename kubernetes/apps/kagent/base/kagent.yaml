@@ -64,6 +64,26 @@ spec:
     strategy:
       name: RetryOnFailure
   values:
+    argo-rollouts-agent:
+      enabled: false
+    istio-agent:
+      enabled: false
+    grafana-mcp:
+      enabled: false
+    ui:
+      httpRoute:
+        hostnames:
+          - kagent.dcaspi.dev
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: http-internal
+            namespace: networking
+        rules:
+          - backendRefs:
+              - name: kagent-ui
+                port: 8080
+
     providers:
       default: openAI
       openAI:
