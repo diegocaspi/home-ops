@@ -53,6 +53,9 @@ spec:
   chartRef:
     kind: OCIRepository
     name: kagent
+  commonMetadata:
+    labels:
+      app.kubernetes.io/version: 0.9.12
   dependsOn:
     - name: kagent-crds
   install:
@@ -64,6 +67,7 @@ spec:
     strategy:
       name: RetryOnFailure
   values:
+    tag: 0.9.12
     argo-rollouts-agent:
       enabled: false
     istio-agent:
