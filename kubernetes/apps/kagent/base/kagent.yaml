@@ -96,5 +96,4 @@ spec:
         model: kimi-k2.6
         provider: OpenAI
         config:
-          openAI:
-            baseUrl: "https://opencode.ai/zen/v1"
+          baseUrl: "https://opencode.ai/zen/v1"
