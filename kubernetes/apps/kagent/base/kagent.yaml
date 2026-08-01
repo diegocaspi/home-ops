@@ -68,6 +68,8 @@ spec:
       name: RetryOnFailure
   values:
     tag: 0.9.12
+    querydoc:
+      enabled: true
     observability-agent:
       enabled: false
     argo-rollouts-agent:
@@ -86,11 +88,6 @@ spec:
             kind: Gateway
             name: http-internal
             namespace: networking
-        rules:
-          - backendRefs:
-              - name: kagent-ui
-                port: 8080
-
     providers:
       default: openAI
       openAI:
@@ -98,5 +95,6 @@ spec:
         apiKeySecretRef: kagent-openai
         model: kimi-k2.6
         provider: OpenAI
-        openAI:
-          baseUrl: "https://opencode.ai/zen/v1"
+        config:
+          openAI:
+            baseUrl: "https://opencode.ai/zen/v1"
