@@ -90,6 +90,11 @@ spec:
             kind: Gateway
             name: http-internal
             namespace: networking
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
     providers:
       default: openAI
       openAI:
