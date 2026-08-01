@@ -68,6 +68,8 @@ spec:
       name: RetryOnFailure
   values:
     tag: 0.9.12
+    observability-agent:
+      enabled: false
     argo-rollouts-agent:
       enabled: false
     istio-agent:
@@ -76,6 +78,7 @@ spec:
       enabled: false
     ui:
       httpRoute:
+        enabled: true
         hostnames:
           - kagent.dcaspi.dev
         parentRefs:
