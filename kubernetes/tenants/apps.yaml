@@ -7,7 +7,18 @@ metadata:
     fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
   inputs:
+    - tenant: "ate-system"
+      podSecurityEnforce: privileged
+      dependsOn: []
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
     - tenant: "kagent"
+      podSecurityEnforce: baseline
+      dependsOn:
+        - name: apps
+          namespace: ate-system
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
@@ -18,7 +29,7 @@ spec:
       metadata:
         name: << inputs.tenant >>
         labels:
-          pod-security.kubernetes.io/enforce: baseline
+          pod-security.kubernetes.io/enforce: << inputs.podSecurityEnforce >>
     - apiVersion: v1
       kind: ConfigMap
       metadata:
@@ -77,6 +88,7 @@ spec:
         name: apps
         namespace: << inputs.tenant >>
       spec:
+        dependsOn: << inputs.dependsOn | toJson >>
         targetNamespace: << inputs.tenant >>
         serviceAccountName: flux
         interval: 30m
