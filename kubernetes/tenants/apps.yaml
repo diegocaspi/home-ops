@@ -94,7 +94,7 @@ spec:
         interval: 30m
         retryInterval: 5m
         wait: true
-        timeout: 5m
+        timeout: 15m
         sourceRef:
           kind: OCIRepository
           name: apps
