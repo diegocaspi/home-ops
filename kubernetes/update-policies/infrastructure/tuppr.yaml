@@ -1,0 +1,21 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: tuppr
+spec:
+  image: "ghcr.io/home-operations/charts/tuppr"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: tuppr
+spec:
+  imageRepositoryRef:
+    name: tuppr
+  policy:
+    semver:
+      range: ">=0.1.0"
