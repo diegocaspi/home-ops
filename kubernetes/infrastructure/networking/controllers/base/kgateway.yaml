@@ -9,7 +9,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: v2.4.1 # {"$imagepolicy": "infrastructure:kgateway:tag"}
+    tag: v2.4.2 # {"$imagepolicy": "infrastructure:kgateway:tag"}
   url: oci://cr.kgateway.dev/kgateway-dev/charts/kgateway
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
