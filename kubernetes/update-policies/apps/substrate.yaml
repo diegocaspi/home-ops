@@ -1,0 +1,43 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: substrate
+spec:
+  image: "ghcr.io/kagent-dev/substrate/helm/substrate"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: substrate
+spec:
+  imageRepositoryRef:
+    name: substrate
+  policy:
+    semver:
+      range: ">=0.0.6"
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: substrate-crds
+spec:
+  image: "ghcr.io/kagent-dev/substrate/helm/substrate-crds"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: substrate-crds
+spec:
+  imageRepositoryRef:
+    name: substrate-crds
+  policy:
+    semver:
+      range: ">=0.0.6"

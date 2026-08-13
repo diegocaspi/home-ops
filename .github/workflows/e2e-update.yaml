@@ -33,6 +33,8 @@ jobs:
             ResourceSet/flux-system/image-update-automation
             Kustomization/infrastructure/infrastructure
             ImageUpdateAutomation/infrastructure/infrastructure
+            Kustomization/apps/apps
+            ImageUpdateAutomation/apps/apps
           )
 
           for resource in "${resources[@]}"; do
@@ -45,7 +47,7 @@ jobs:
       - name: Image automation status
         run: |
           flux -n apps get all
-          flux -n infra get all
+          flux -n infrastructure get all
       - name: Debug failure
         if: failure()
         run: |
