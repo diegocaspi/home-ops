@@ -13,10 +13,16 @@ if [ $# -eq 0 ]; then
 fi
 
 YAML_FILE="$1"
+TALOSCONFIG="talos/clusterconfig/talosconfig"
 
 # Check if file exists
 if [ ! -f "$YAML_FILE" ]; then
     echo "Error: File '$YAML_FILE' not found"
+    exit 1
+fi
+
+if [ ! -f "$TALOSCONFIG" ]; then
+    echo "Error: Talos config '$TALOSCONFIG' not found"
     exit 1
 fi
 
@@ -30,6 +36,7 @@ fi
 
 echo "Processing cluster: $CLUSTER_NAME"
 echo "---"
+FAILED=0
 
 # Get the number of nodes
 NODE_COUNT=$(yq -r '.nodes | length' "$YAML_FILE")
@@ -66,12 +73,13 @@ for i in $(seq 0 $((NODE_COUNT - 1))); do
         IP=$(echo "$IP" | xargs)
 
         echo "  Applying config to IP: $IP"
-        talosctl apply-config --insecure --nodes "$IP" --file "$CONFIG_FILE"
+        talosctl apply-config --talosconfig "$TALOSCONFIG" --nodes "$IP" --endpoints "$IP" --file "$CONFIG_FILE"
 
         if [ $? -eq 0 ]; then
             echo "  ✓ Successfully applied config to $IP"
         else
             echo "  ✗ Failed to apply config to $IP"
+            FAILED=1
         fi
     done
 
@@ -79,3 +87,4 @@ for i in $(seq 0 $((NODE_COUNT - 1))); do
 done
 
 echo "Done!"
+exit "$FAILED"
