@@ -9,7 +9,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.0.12 # {"$imagepolicy": "apps:substrate-crds:tag"}
+    tag: 0.0.9 # {"$imagepolicy": "apps:substrate-crds:tag"}
   url: oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -40,7 +40,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.0.12 # {"$imagepolicy": "apps:substrate:tag"}
+    tag: 0.0.9 # {"$imagepolicy": "apps:substrate:tag"}
   url: oci://ghcr.io/kagent-dev/substrate/helm/substrate
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -82,41 +82,6 @@ spec:
                 value:
                   helm.sh/hook: post-install,post-upgrade
                   helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-          - target:
-              group: rbac.authorization.k8s.io
-              version: v1
-              kind: ClusterRole
-              name: ate-api-server-role
-            patch: |
-              - op: add
-                path: /rules/-
-                value:
-                  apiGroups:
-                    - ate.dev
-                  resources:
-                    - csidriverconfigs
-                  verbs:
-                    - get
-                    - list
-                    - watch
-              - op: add
-                path: /rules/-
-                value:
-                  apiGroups:
-                    - storage.k8s.io
-                  resources:
-                    - storageclasses
-                  verbs:
-                    - get
-                    - list
-                    - watch
-          - target:
-              version: v1
-              kind: Service
-              name: api
-            patch: |
-              - op: remove
-                path: /spec/clusterIP
   timeout: 10m
   upgrade:
     disableWait: true

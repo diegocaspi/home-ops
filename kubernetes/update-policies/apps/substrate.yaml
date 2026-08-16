@@ -18,7 +18,7 @@ spec:
     name: substrate
   policy:
     semver:
-      range: ">=0.0.6"
+      range: "=0.0.9"
 
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -40,4 +40,4 @@ spec:
     name: substrate-crds
   policy:
     semver:
-      range: ">=0.0.6"
+      range: "=0.0.9"

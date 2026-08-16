@@ -79,7 +79,7 @@ spec:
     substrateWorkerPool:
       create: true
       replicas: 1
-      ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.6
+      ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.9
     extraObjects:
       - apiVersion: kagent.dev/v1alpha2
         kind: AgentHarness
