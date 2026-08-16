@@ -55,10 +55,35 @@ spec:
   dependsOn:
     - name: substrate-crds
   install:
+    disableWait: true
     strategy:
       name: RetryOnFailure
   interval: 1h
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              group: ate.dev
+              version: v1alpha1
+              kind: SandboxConfig
+              name: gvisor-default
+            patch: |
+              - op: add
+                path: /spec/pauseImage
+                value: registry.k8s.io/pause:3.10.2@sha256:f548e0e8e3dc1896ca956272154dde3314e8cc4fde0a57577ee9fa1c63f5baf4
+          - target:
+              group: batch
+              version: v1
+              kind: Job
+              name: valkey-cluster-init
+            patch: |
+              - op: add
+                path: /metadata/annotations
+                value:
+                  helm.sh/hook: post-install,post-upgrade
+                  helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
   timeout: 10m
   upgrade:
+    disableWait: true
     strategy:
       name: RetryOnFailure
