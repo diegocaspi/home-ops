@@ -15,7 +15,7 @@ spec:
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
     - tenant: "kagent"
-      podSecurityEnforce: baseline
+      podSecurityEnforce: privileged
       dependsOn:
         - name: apps
           namespace: ate-system
