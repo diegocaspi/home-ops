@@ -83,6 +83,34 @@ spec:
                   helm.sh/hook: post-install,post-upgrade
                   helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
           - target:
+              group: rbac.authorization.k8s.io
+              version: v1
+              kind: ClusterRole
+              name: ate-api-server-role
+            patch: |
+              - op: add
+                path: /rules/-
+                value:
+                  apiGroups:
+                    - ate.dev
+                  resources:
+                    - csidriverconfigs
+                  verbs:
+                    - get
+                    - list
+                    - watch
+              - op: add
+                path: /rules/-
+                value:
+                  apiGroups:
+                    - storage.k8s.io
+                  resources:
+                    - storageclasses
+                  verbs:
+                    - get
+                    - list
+                    - watch
+          - target:
               version: v1
               kind: Service
               name: api
