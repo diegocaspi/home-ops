@@ -7,6 +7,10 @@ allowSchedulingOnMasters: true
 controlPlane:
   patches:
     - |-
+      cluster:
+        apiServer:
+          extraArgs:
+            service-account-issuer: https://192.168.2.144:6443
       machine:
         features:
           kubernetesTalosAPIAccess:

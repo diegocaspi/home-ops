@@ -54,6 +54,10 @@ spec:
     name: substrate
   dependsOn:
     - name: substrate-crds
+  values:
+    auth:
+      jwt:
+        issuer: https://192.168.2.144:6443
   install:
     disableWait: true
     strategy:
