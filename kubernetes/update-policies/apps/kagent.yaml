@@ -1,0 +1,43 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: kagent
+spec:
+  image: "ghcr.io/kagent-dev/kagent/helm/kagent"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: kagent
+spec:
+  imageRepositoryRef:
+    name: kagent
+  policy:
+    semver:
+      range: ">=0.10.0-rc1"
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: kagent-crds
+spec:
+  image: "ghcr.io/kagent-dev/kagent/helm/kagent-crds"
+  interval: 12h
+  provider: generic
+
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: kagent-crds
+spec:
+  imageRepositoryRef:
+    name: kagent-crds
+  policy:
+    semver:
+      range: ">=0.10.0-rc1"

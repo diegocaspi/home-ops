@@ -4,3 +4,4 @@ kind: Kustomization
 
 resources:
   - cilium.yaml
+  - csi-driver-nfs.yaml

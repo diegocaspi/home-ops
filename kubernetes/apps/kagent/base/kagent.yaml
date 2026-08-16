@@ -10,7 +10,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.10.0-rc1
+    tag: 0.10.0-rc1 # {"$imagepolicy": "apps:kagent-crds:tag"}
   url: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -41,7 +41,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.10.0-rc1
+    tag: 0.10.0-rc1 # {"$imagepolicy": "apps:kagent:tag"}
   url: oci://ghcr.io/kagent-dev/kagent/helm/kagent
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -67,7 +67,42 @@ spec:
     strategy:
       name: RetryOnFailure
   values:
-    tag: 0.10.0-rc1
+    tag: 0.10.0-rc1 # {"$imagepolicy": "apps:kagent:tag"}
+    controller:
+      substrate:
+        enabled: true
+        ateApiEndpoint: dns:///api.ate-system.svc:443
+        ateApiInsecure: true
+        atenetRouterURL: http://atenet-router.ate-system.svc:80
+        defaultWorkerPool:
+          name: kagent-default
+    substrateWorkerPool:
+      create: true
+      replicas: 1
+      ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.6
+    extraObjects:
+      - apiVersion: kagent.dev/v1alpha2
+        kind: AgentHarness
+        metadata:
+          name: hermes-shell
+        spec:
+          backend: hermes
+          description: Hermes shell for scheduled and chat-driven workflows
+          modelConfigRef: default-model-config
+          substrate:
+            workerPoolRef:
+              name: kagent-default
+          channels:
+            - name: telegram
+              type: telegram
+              telegram:
+                allowedUserIDs:
+                  - "454941879" # me
+                botToken:
+                  valueFrom:
+                    type: Secret
+                    name: kagent-openai
+                    key: BOT_TOKEN
     querydoc:
       enabled: false
     promql-agent:
