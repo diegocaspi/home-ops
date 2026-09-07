@@ -9,7 +9,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.10.0-rc5 # {"$imagepolicy": "apps:kagent-crds:tag"}
+    tag: 0.10.0 # {"$imagepolicy": "apps:kagent-crds:tag"}
   url: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -40,7 +40,7 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 0.10.0-rc5 # {"$imagepolicy": "apps:kagent:tag"}
+    tag: 0.10.0 # {"$imagepolicy": "apps:kagent:tag"}
   url: oci://ghcr.io/kagent-dev/kagent/helm/kagent
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -66,7 +66,7 @@ spec:
     strategy:
       name: RetryOnFailure
   values:
-    tag: 0.10.0-rc5 # {"$imagepolicy": "apps:kagent:tag"}
+    tag: 0.10.0 # {"$imagepolicy": "apps:kagent:tag"}
     controller:
       substrate:
         enabled: true
