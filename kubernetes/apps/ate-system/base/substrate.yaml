@@ -77,6 +77,26 @@ spec:
                 value:
                   helm.sh/hook: post-install,post-upgrade
                   helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+          # announce the current pod IP so a rescheduled node does not keep
+          # advertising its stale IP from nodes.conf in CLUSTER SLOTS
+          - target:
+              group: apps
+              version: v1
+              kind: StatefulSet
+              name: valkey-cluster
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/env
+                value:
+                  - name: POD_IP
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: status.podIP
+              - op: add
+                path: /spec/template/spec/containers/0/args
+                value:
+                  - --cluster-announce-ip
+                  - $(POD_IP)
   timeout: 10m
   upgrade:
     disableWait: true
