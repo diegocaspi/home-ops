@@ -18,7 +18,7 @@ spec:
     name: kagent
   policy:
     semver:
-      range: ">=0.10.0-rc1"
+      range: ">=0.10.2 <1.0.0"
 
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -40,4 +40,4 @@ spec:
     name: kagent-crds
   policy:
     semver:
-      range: ">=0.10.0-rc1"
+      range: ">=0.10.2 <1.0.0"
