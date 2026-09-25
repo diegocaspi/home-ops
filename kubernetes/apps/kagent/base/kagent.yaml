@@ -135,7 +135,7 @@ spec:
       openAI:
         apiKeySecretKey: API_KEY
         apiKeySecretRef: kagent-openai
-        model: kimi-k2.6
+        model: glm-5.3-flash
         provider: OpenAI
         config:
           baseUrl: "https://opencode.ai/zen/v1"
