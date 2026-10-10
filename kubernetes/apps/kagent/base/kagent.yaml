@@ -54,7 +54,7 @@ spec:
     name: kagent
   commonMetadata:
     labels:
-      app.kubernetes.io/version: 0.10.0-rc2
+      app.kubernetes.io/version: 0.10.2
   dependsOn:
     - name: kagent-crds
   install:
@@ -134,7 +134,7 @@ spec:
       openAI:
         apiKeySecretKey: API_KEY
         apiKeySecretRef: kagent-openai
-        model: kimi-k2.6
+        model: glm-5.3-flash
         provider: OpenAI
         config:
           baseUrl: "https://opencode.ai/zen/v1"
