@@ -1,3 +1,4 @@
+---
 apiVersion: fluxcd.controlplane.io/v1
 kind: ResourceSet
 metadata:
@@ -19,6 +20,15 @@ spec:
       dependsOn:
         - name: apps
           namespace: ate-system
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+    - tenant: "iam"
+      podSecurityEnforce: baseline
+      dependsOn:
+        - name: infrastructure-controllers
+          namespace: cnpg-system
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
