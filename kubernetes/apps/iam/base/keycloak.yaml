@@ -28,8 +28,8 @@ spec:
     image:
       repository: quay.io/phasetwo/phasetwo-keycloak
       tag: "26.8.1"
-    # args:
-    #   - "--proxy-headers=forwarded"
+    args:
+      - "start"
     extraEnv: |
       - name: KC_BOOTSTRAP_ADMIN_USERNAME
         valueFrom:
