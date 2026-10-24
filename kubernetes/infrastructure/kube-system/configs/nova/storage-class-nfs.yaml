@@ -3,6 +3,7 @@ kind: StorageClass
 metadata:
   name: truenas-nfs
 provisioner: nfs.csi.k8s.io
+allowVolumeExpansion: true
 parameters:
   onDelete: retain
   server: 192.168.2.250
