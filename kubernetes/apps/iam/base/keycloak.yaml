@@ -52,7 +52,7 @@ spec:
       port: 5432
       database: keycloak
       username: keycloak
-      existingSecret: iam-postgres-auth
+      existingSecret: iam-keycloak
       existingSecretKey: password
     proxy:
       enabled: true
