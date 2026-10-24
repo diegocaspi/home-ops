@@ -29,7 +29,6 @@ spec:
       repository: quay.io/phasetwo/phasetwo-keycloak
       tag: "26.8.1"
     args:
-      - "--http-enabled=true"
       - "--hostname=https://iam.dcaspi.dev"
       - "--proxy-headers=forwarded"
       - "--spi-email-template-provider=freemarker-plus-mustache"
