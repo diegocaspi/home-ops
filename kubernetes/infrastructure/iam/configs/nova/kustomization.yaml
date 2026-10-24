@@ -5,5 +5,4 @@ kind: Kustomization
 resources:
   - external-secret.yaml
   - postgresql.yaml
-  - operator.yaml
   - keycloak.yaml

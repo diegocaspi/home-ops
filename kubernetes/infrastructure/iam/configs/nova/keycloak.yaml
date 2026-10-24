@@ -3,8 +3,7 @@ apiVersion: k8s.keycloak.org/v2beta1
 kind: Keycloak
 metadata:
   name: iam
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
+  namespace: iam
 spec:
   instances: 1
   image: ecsdispdueacr.azurecr.io/quay/phasetwo/phasetwo-keycloak:26.6.3

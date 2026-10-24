@@ -3,7 +3,6 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: keycloak-operator
-  namespace: iam
 spec:
   interval: 1h
   url: oci://quay.io/keycloak/keycloak-operator-helm
@@ -17,7 +16,6 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: keycloak-operator
-  namespace: iam
 spec:
   chartRef:
     kind: OCIRepository

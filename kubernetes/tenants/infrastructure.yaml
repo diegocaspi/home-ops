@@ -44,6 +44,17 @@ spec:
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
+    - tenant: "iam"
+      dependsOn:
+        - name: infrastructure-configs
+          namespace: external-secrets
+        - name: infrastructure-controllers
+          namespace: cnpg-system
+      tag: "${ARTIFACT_TAG}"
+      clusterName: "${CLUSTER_NAME}"
+      artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
+      artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
+      podSecurityEnforce: "baseline"
     - tenant: "longhorn-system"
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
@@ -144,6 +155,7 @@ spec:
       spec:
         dependsOn:
           - name: infrastructure-controllers
+          << inputs.dependsOn | toYaml | indent 10 >>
         targetNamespace: << inputs.tenant >>
         serviceAccountName: flux
         interval: 30m
