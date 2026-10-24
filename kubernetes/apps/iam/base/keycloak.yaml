@@ -40,19 +40,19 @@ spec:
         valueFrom:
           secretKeyRef:
             name: iam-keycloak
-            key: admin-username
+            key: username
       - name: KC_BOOTSTRAP_ADMIN_PASSWORD
         valueFrom:
           secretKeyRef:
             name: iam-keycloak
-            key: admin-password
+            key: password
     database:
       vendor: postgres
       hostname: iam-postgres-rw
       port: 5432
       database: keycloak
       username: keycloak
-      existingSecret: iam-keycloak
+      existingSecret: iam-postgres-auth
       existingSecretKey: password
     proxy:
       enabled: true
