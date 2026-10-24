@@ -1,64 +1,50 @@
 ---
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/helmrepository_v1.json
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
+apiVersion: k8s.keycloak.org/v2beta1
+kind: Keycloak
 metadata:
-  name: keycloakx
+  name: iam
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
-  interval: 15m
-  url: https://codecentric.github.io/helm-charts
----
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
-metadata:
-  name: keycloak
-spec:
-  chart:
-    spec:
-      chart: keycloakx
-      sourceRef:
-        kind: HelmRepository
-        name: keycloakx
-      version: 7.4.0
-  interval: 1h
-  timeout: 15m
-  values:
-    replicas: 1
-    image:
-      repository: quay.io/phasetwo/phasetwo-keycloak
-      tag: "26.8.1"
-    args:
-      - "start"
-    extraEnv: |
-      - name: KC_BOOTSTRAP_ADMIN_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: iam-keycloak
-            key: username
-      - name: KC_BOOTSTRAP_ADMIN_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: iam-keycloak
-            key: password
-    database:
-      vendor: postgres
-      hostname: iam-postgres-rw
-      port: 5432
-      database: keycloak
-      username: keycloak
-      existingSecret: iam-postgres-auth
-      existingSecretKey: password
-    proxy:
-      enabled: true
-      mode: forwarded
-    http:
-      relativePath: /auth
-    httpRoute:
-      enabled: true
-      hostnames:
-        - iam.dcaspi.dev
-      parentRefs:
-        - name: http
-          namespace: kgateway-system
-          sectionName: https
+  instances: 1
+  image: ecsdispdueacr.azurecr.io/quay/phasetwo/phasetwo-keycloak:26.6.3
+  startOptimized: false
+  bootstrapAdmin:
+    user:
+      secret: iam-keycloak
+  db:
+    vendor: postgres
+    host: iam-postgres-rw
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: iam-postgres-auth
+      key: username
+    passwordSecret:
+      name: iam-postgres-auth
+      key: password
+  http:
+    httpEnabled: true
+    httpPort: 8180
+    httpsPort: 8443
+  features:
+    enabled:
+      - client-secret-rotation:v1
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: false
+  hostname:
+    hostname: https://iam.dcaspi.dev
+  additionalOptions:
+    - name: spi-connections-jpa-quarkus-migration-strategy
+      value: update
+    - name: spi-events-store-provider
+      value: ext-event-mdc-logger-store
+    - name: http-relative-path
+      value: /auth
+    - name: log-console-output
+      value: json
+  env:
+    - name: KC_SPI_EVENTS_STORE_EXT_EVENT_MDC_LOGGER_STORE_USE_JPA
+      value: "true"
