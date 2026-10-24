@@ -45,7 +45,7 @@ spec:
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "iam"
-      dependsOn:
+      additionalDependsOn:
         - name: infrastructure-configs
           namespace: external-secrets
         - name: infrastructure-controllers
@@ -153,9 +153,7 @@ spec:
         name: infrastructure-configs
         namespace: << inputs.tenant >>
       spec:
-        dependsOn:
-          - name: infrastructure-controllers
-          << inputs.dependsOn | toYaml | indent 10 >>
+        dependsOn: << append (list (dict "name" "infrastructure-controllers")) inputs.additionalDependsOn | toJson >>
         targetNamespace: << inputs.tenant >>
         serviceAccountName: flux
         interval: 30m
