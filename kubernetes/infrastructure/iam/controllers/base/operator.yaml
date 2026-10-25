@@ -10,7 +10,8 @@ spec:
     mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
     operation: copy
   ref:
-    tag: 26.6.3
+    # keycloak project prunes old chart tags on quay, keep >= latest-1
+    tag: 26.8.1
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
