@@ -13,7 +13,7 @@ spec:
       secret: iam-keycloak
   db:
     vendor: postgres
-    host: iam-postgres-rw
+    host: iam-postgres-pooler
     port: 5432
     database: keycloak
     usernameSecret:
