@@ -6,7 +6,7 @@ metadata:
   namespace: iam
 spec:
   instances: 1
-  image: ecsdispdueacr.azurecr.io/quay/phasetwo/phasetwo-keycloak:26.6.3
+  image: quay.io/phasetwo/phasetwo-keycloak:26.8.1
   startOptimized: false
   bootstrapAdmin:
     user:
