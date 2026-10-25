@@ -45,5 +45,8 @@ spec:
     - name: log-console-output
       value: json
   env:
+    # ext-event-mdc-logger-store is EnvironmentDependentProviderFactory; it only registers when this is set.
+    - name: EXT_EVENT_MDC_LOGGER_ENABLED
+      value: "true"
     - name: KC_SPI_EVENTS_STORE_EXT_EVENT_MDC_LOGGER_STORE_USE_JPA
       value: "true"
