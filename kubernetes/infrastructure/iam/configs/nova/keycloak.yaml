@@ -40,8 +40,6 @@ spec:
       value: update
     - name: spi-events-store-provider
       value: ext-event-mdc-logger-store
-    - name: http-relative-path
-      value: /auth
     - name: log-console-output
       value: json
   env:
