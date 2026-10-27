@@ -39,6 +39,8 @@ spec:
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "cnpg-system"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
@@ -56,12 +58,16 @@ spec:
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "longhorn-system"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "privileged"
     - tenant: "o11y"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
@@ -152,6 +158,8 @@ spec:
       metadata:
         name: infrastructure-configs
         namespace: << inputs.tenant >>
+        annotations:
+          fluxcd.controlplane.io/reconcile: << if (get (get inputs "configs" | default (dict "enabled" true)) "enabled") >>enabled<< else >>disabled<< end >>
       spec:
         dependsOn: << concat (list (dict "name" "infrastructure-controllers")) (get . "additionalDependsOn" | default (list)) | toJson >>
         targetNamespace: << inputs.tenant >>
