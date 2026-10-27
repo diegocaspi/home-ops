@@ -147,7 +147,7 @@ spec:
         sourceRef:
           kind: OCIRepository
           name: infrastructure
-        path: "./infrastructure/<< inputs.tenant >>/controllers/<< inputs.clusterName >>"
+        path: "./tenants/<< inputs.tenant >>/controllers"
         prune: true
         postBuild:
           substituteFrom:
@@ -171,7 +171,7 @@ spec:
         sourceRef:
           kind: OCIRepository
           name: infrastructure
-        path: "./infrastructure/<< inputs.tenant >>/configs/<< inputs.clusterName >>"
+        path: "./tenants/<< inputs.tenant >>/configs"
         prune: true
         postBuild:
           substituteFrom:
