@@ -99,7 +99,7 @@ spec:
         sourceRef:
           kind: OCIRepository
           name: apps
-        path: "./apps/<< inputs.tenant >>/<< inputs.clusterName >>"
+        path: "./tenants/<< inputs.tenant >>/controllers"
         prune: true
         postBuild:
           substituteFrom:
