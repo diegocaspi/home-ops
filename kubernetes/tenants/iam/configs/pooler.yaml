@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/postgresql.cnpg.io/pooler_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: iam-postgres-pooler
+  namespace: iam
+spec:
+  cluster:
+    name: iam-postgres
+  instances: 1
+  pgbouncer:
+    # session mode: Keycloak uses prepared statements, which transaction mode breaks
+    poolMode: session

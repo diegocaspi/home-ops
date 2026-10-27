@@ -9,42 +9,56 @@ metadata:
 spec:
   inputs:
     - tenant: "kube-system"
+      configs:
+        enabled: true
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "system-upgrade"
+      configs:
+        enabled: true
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "external-secrets"
+      configs:
+        enabled: true
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "cert-manager"
+      configs:
+        enabled: true
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "networking"
+      configs:
+        enabled: true
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "cnpg-system"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "iam"
+      configs:
+        enabled: true
       additionalDependsOn:
         - name: infrastructure-configs
           namespace: external-secrets
@@ -56,12 +70,16 @@ spec:
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "baseline"
     - tenant: "longhorn-system"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
       artifactSubjectGitRef: "${ARTIFACT_SUBJECT_GIT_REF}"
       podSecurityEnforce: "privileged"
     - tenant: "o11y"
+      configs:
+        enabled: false
       tag: "${ARTIFACT_TAG}"
       clusterName: "${CLUSTER_NAME}"
       artifactSubjectWorkflow: "${ARTIFACT_SUBJECT_WORKFLOW}"
@@ -152,6 +170,8 @@ spec:
       metadata:
         name: infrastructure-configs
         namespace: << inputs.tenant >>
+        annotations:
+          fluxcd.controlplane.io/reconcile: << if inputs.configs.enabled >>enabled<< else >>disabled<< end >>
       spec:
         dependsOn: << concat (list (dict "name" "infrastructure-controllers")) (get . "additionalDependsOn" | default (list)) | toJson >>
         targetNamespace: << inputs.tenant >>

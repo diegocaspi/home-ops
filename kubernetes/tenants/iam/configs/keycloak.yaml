@@ -1,0 +1,50 @@
+---
+apiVersion: k8s.keycloak.org/v2beta1
+kind: Keycloak
+metadata:
+  name: iam
+  namespace: iam
+spec:
+  instances: 1
+  image: quay.io/phasetwo/phasetwo-keycloak:26.8.1
+  startOptimized: false
+  bootstrapAdmin:
+    user:
+      secret: iam-keycloak
+  db:
+    vendor: postgres
+    host: iam-postgres-pooler
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: iam-postgres-auth
+      key: username
+    passwordSecret:
+      name: iam-postgres-auth
+      key: password
+  http:
+    httpEnabled: true
+    httpPort: 8180
+    httpsPort: 8443
+  features:
+    enabled:
+      - client-secret-rotation:v1
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: false
+  hostname:
+    hostname: https://iam.dcaspi.dev
+  additionalOptions:
+    - name: spi-connections-jpa-quarkus-migration-strategy
+      value: update
+    - name: spi-events-store-provider
+      value: ext-event-mdc-logger-store
+    - name: log-console-output
+      value: json
+  env:
+    # ext-event-mdc-logger-store is EnvironmentDependentProviderFactory; it only registers when this is set.
+    - name: EXT_EVENT_MDC_LOGGER_ENABLED
+      value: "true"
+    - name: KC_SPI_EVENTS_STORE_EXT_EVENT_MDC_LOGGER_STORE_USE_JPA
+      value: "true"

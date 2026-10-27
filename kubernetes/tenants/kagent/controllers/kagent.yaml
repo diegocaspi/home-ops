@@ -1,0 +1,143 @@
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kagent-crds
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+# renovate: datasource=docker depName=ghcr.io/kagent-dev/kagent/helm/kagent-crds
+    tag: 0.10.3 
+  url: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kagent-crds
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kagent-crds
+  install:
+    strategy:
+      name: RetryOnFailure
+  interval: 1h
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: kagent
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+# renovate: datasource=docker depName=ghcr.io/kagent-dev/kagent/helm/kagent
+    tag: 0.10.3 
+  url: oci://ghcr.io/kagent-dev/kagent/helm/kagent
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kagent
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kagent
+  commonMetadata:
+    labels:
+      app.kubernetes.io/version: 0.10.2
+  dependsOn:
+    - name: kagent-crds
+  install:
+    strategy:
+      name: RetryOnFailure
+  interval: 1h
+  timeout: 10m
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+  values:
+# renovate: datasource=docker depName=ghcr.io/kagent-dev/kagent/helm/kagent
+    tag: 0.10.3 
+    controller:
+      substrate:
+        enabled: true
+        ateApiEndpoint: dns:///api.ate-system.svc:443
+        ateApiInsecure: true
+        atenetRouterURL: http://atenet-router.ate-system.svc:80
+        defaultWorkerPool:
+          name: kagent-default
+    substrateWorkerPool:
+      create: true
+      replicas: 1
+      ateomImage: ghcr.io/kagent-dev/substrate/ateom-gvisor:v0.0.9
+    extraObjects:
+      - apiVersion: kagent.dev/v1alpha2
+        kind: AgentHarness
+        metadata:
+          name: hermes-shell
+        spec:
+          backend: hermes
+          description: Hermes shell for scheduled and chat-driven workflows
+          modelConfigRef: default-model-config
+          substrate:
+            workerPoolRef:
+              name: kagent-default
+          channels:
+            - name: telegram
+              type: telegram
+              telegram:
+                allowedUserIDs:
+                  - "454941879" # me
+                botToken:
+                  valueFrom:
+                    type: Secret
+                    name: kagent-openai
+                    key: BOT_TOKEN
+    querydoc:
+      enabled: false
+    promql-agent:
+      enabled: false
+    observability-agent:
+      enabled: false
+    argo-rollouts-agent:
+      enabled: false
+    istio-agent:
+      enabled: false
+    grafana-mcp:
+      enabled: false
+    ui:
+      httpRoute:
+        enabled: true
+        hostnames:
+          - kagent.dcaspi.dev
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: http-internal
+            namespace: networking
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+    providers:
+      default: openAI
+      openAI:
+        apiKeySecretKey: API_KEY
+        apiKeySecretRef: kagent-openai
+        model: glm-5.3-flash
+        provider: OpenAI
+        config:
+          baseUrl: "https://opencode.ai/zen/v1"
