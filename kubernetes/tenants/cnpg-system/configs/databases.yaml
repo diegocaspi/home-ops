@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/postgresql.cnpg.io/database_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: kagent
+spec:
+  cluster:
+    name: shared-postgres
+  name: kagent
+  owner: kagent
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/postgresql.cnpg.io/database_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: substrate
+spec:
+  cluster:
+    name: shared-postgres
+  name: substrate
+  owner: substrate
