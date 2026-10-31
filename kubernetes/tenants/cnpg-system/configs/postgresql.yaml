@@ -16,16 +16,6 @@ spec:
       owner: app
       secret:
         name: shared-postgres-app
-  # role passwords come from 1Password via the ExternalSecrets in this dir;
-  # CNPG requires the secrets to carry both username and password keys
-  managed:
-    roles:
-      - name: kagent
-        passwordSecret:
-          name: kagent-postgres-auth
-      - name: substrate
-        passwordSecret:
-          name: substrate-postgres-auth
   resources:
     requests:
       memory: 512Mi
