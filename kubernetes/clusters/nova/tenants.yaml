@@ -1,19 +1,138 @@
 ---
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
+apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
 metadata:
   name: tenants
   namespace: flux-system
+  annotations:
+    fluxcd.controlplane.io/reconcileEvery: "5m"
 spec:
-  serviceAccountName: flux-operator
-  interval: 12h
-  retryInterval: 3m
-  path: ./tenants
-  prune: true
-  sourceRef:
-    kind: OCIRepository
-    name: flux-system
-  postBuild:
-    substituteFrom:
-      - kind: ConfigMap
-        name: flux-runtime-info
+  inputs:
+    - tenant: "kube-system"
+      podSecurityEnforce: "baseline"
+    - tenant: "system-upgrade"
+      podSecurityEnforce: "baseline"
+    - tenant: "external-secrets"
+      podSecurityEnforce: "baseline"
+    - tenant: "cert-manager"
+      podSecurityEnforce: "baseline"
+    - tenant: "networking"
+      podSecurityEnforce: "baseline"
+    - tenant: "cnpg-system"
+      podSecurityEnforce: "baseline"
+      configs:
+        enabled: false
+    - tenant: "iam"
+      podSecurityEnforce: "baseline"
+      additionalDependsOn:
+        - name: controllers
+          namespace: external-secrets
+        - name: controllers
+          namespace: cnpg-system
+    - tenant: "longhorn-system"
+      podSecurityEnforce: "privileged"
+      configs:
+        enabled: false
+    - tenant: "o11y"
+      podSecurityEnforce: "privileged"
+      configs:
+        enabled: false
+    - tenant: "ate-system"
+      podSecurityEnforce: "privileged"
+      configs:
+        enabled: false
+    - tenant: "kagent"
+      podSecurityEnforce: "privileged"
+      configs:
+        enabled: false
+      dependsOn:
+        - name: controllers
+          namespace: ate-system
+  resources:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: << inputs.tenant >>
+        labels:
+          pod-security.kubernetes.io/enforce: << inputs.podSecurityEnforce >>
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ghcr-auth
+        namespace: << inputs.tenant >>
+        annotations:
+          fluxcd.controlplane.io/copyFrom: "flux-system/ghcr-auth"
+      type: kubernetes.io/dockerconfigjson
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: flux
+        namespace: << inputs.tenant >>
+      imagePullSecrets:
+        - name: ghcr-auth
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: flux-<< inputs.tenant >>
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+          name: flux
+          namespace: << inputs.tenant >>
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: home-ops
+        namespace: << inputs.tenant >>
+      spec:
+        interval: 5m
+        serviceAccountName: flux
+        url: "oci://ghcr.io/diegocaspi/home-ops"
+        ref:
+          tag: latest
+        verify:
+          provider: cosign
+          matchOIDCIdentity:
+            - issuer: ^https://token\.actions\.githubusercontent\.com$
+              subject: ^https://github\.com/diegocaspi/home-ops/\.github/workflows/push-artifact\.yaml@refs/heads/main$
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: controllers
+        namespace: << inputs.tenant >>
+      spec:
+        << if hasKey inputs "dependsOn" >>dependsOn: << inputs.dependsOn | toJson >><< end >>
+        targetNamespace: << inputs.tenant >>
+        serviceAccountName: flux
+        interval: 30m
+        retryInterval: 5m
+        wait: true
+        timeout: 15m
+        sourceRef:
+          kind: OCIRepository
+          name: home-ops
+        path: "./tenants/<< inputs.tenant >>/controllers"
+        prune: true
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: configs
+        namespace: << inputs.tenant >>
+        annotations:
+          fluxcd.controlplane.io/reconcile: << if (get (get inputs "configs" | default (dict "enabled" true)) "enabled") >>enabled<< else >>disabled<< end >>
+      spec:
+        dependsOn: << concat (list (dict "name" "controllers")) (get inputs "additionalDependsOn" | default (list)) | toJson >>
+        targetNamespace: << inputs.tenant >>
+        serviceAccountName: flux
+        interval: 30m
+        retryInterval: 5m
+        wait: true
+        timeout: 15m
+        sourceRef:
+          kind: OCIRepository
+          name: home-ops
+        path: "./tenants/<< inputs.tenant >>/configs"
+        prune: true
