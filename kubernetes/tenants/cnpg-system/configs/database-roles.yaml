@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/postgresql.cnpg.io/databaserole_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: kagent
+spec:
+  cluster:
+    name: shared-postgres
+  name: kagent
+  login: true
+  passwordSecret:
+    name: kagent-postgres-auth
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/postgresql.cnpg.io/databaserole_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: substrate
+spec:
+  cluster:
+    name: shared-postgres
+  name: substrate
+  login: true
+  passwordSecret:
+    name: substrate-postgres-auth
