@@ -7,4 +7,5 @@ resources:
   - postgresql.yaml
   - pooler.yaml
   - keycloak.yaml
+  - network-policy.yaml
   - httproute.yaml
