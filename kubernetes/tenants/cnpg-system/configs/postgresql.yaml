@@ -14,8 +14,6 @@ spec:
     initdb:
       database: app
       owner: app
-      secret:
-        name: shared-postgres-app
   resources:
     requests:
       memory: 512Mi
