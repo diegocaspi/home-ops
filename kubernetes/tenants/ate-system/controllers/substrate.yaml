@@ -10,7 +10,7 @@ spec:
     operation: copy
   ref:
 # renovate: datasource=docker depName=ghcr.io/kagent-dev/substrate/helm/substrate-crds
-    tag: 0.0.9 
+    tag: 1.0.0-rc1
   url: oci://ghcr.io/kagent-dev/substrate/helm/substrate-crds
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -42,7 +42,7 @@ spec:
     operation: copy
   ref:
 # renovate: datasource=docker depName=ghcr.io/kagent-dev/substrate/helm/substrate
-    tag: 0.0.9 
+    tag: 1.0.0-rc1
   url: oci://ghcr.io/kagent-dev/substrate/helm/substrate
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
@@ -54,53 +54,39 @@ spec:
   chartRef:
     kind: OCIRepository
     name: substrate
+  commonMetadata:
+    labels:
+      app.kubernetes.io/version: 1.0.0-rc1
   dependsOn:
     - name: substrate-crds
-  values:
-    auth:
-      jwt:
-        issuer: https://192.168.2.144:6443
   install:
     disableWait: true
     strategy:
       name: RetryOnFailure
   interval: 1h
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              group: batch
-              version: v1
-              kind: Job
-              name: valkey-cluster-init
-            patch: |
-              - op: add
-                path: /metadata/annotations
-                value:
-                  helm.sh/hook: post-install,post-upgrade
-                  helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
-          # announce the current pod IP so a rescheduled node does not keep
-          # advertising its stale IP from nodes.conf in CLUSTER SLOTS
-          - target:
-              group: apps
-              version: v1
-              kind: StatefulSet
-              name: valkey-cluster
-            patch: |
-              - op: add
-                path: /spec/template/spec/containers/0/env
-                value:
-                  - name: POD_IP
-                    valueFrom:
-                      fieldRef:
-                        fieldPath: status.podIP
-              - op: add
-                path: /spec/template/spec/containers/0/args
-                value:
-                  - --cluster-announce-ip
-                  - $(POD_IP)
   timeout: 10m
   upgrade:
     disableWait: true
     strategy:
       name: RetryOnFailure
+  values:
+    # connection strings come from the shared CNPG cluster via ExternalSecret;
+    # roles match the CNPG managed roles, and the app user is its own role
+    postgres:
+      readWriteConnectionStringSecretRef:
+        name: substrate-postgres-app
+        key: uri
+      ownerConnectionStringSecretRef:
+        name: substrate-postgres-app
+        key: uri
+      readWriteRole: substrate
+      ownerRole: substrate
+    # admit the kagent controller's pod-certificate identity to the Substrate API
+    ateApi:
+      authorization:
+        bootstrapOwners:
+          - spiffe://cluster.local/ns/kagent/sa/kagent-controller
+    credentialProvider:
+      namespacePolicies:
+        - atespace: kagent
+          allowedNamespaces: [kagent]

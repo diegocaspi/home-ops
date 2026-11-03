@@ -46,6 +46,7 @@ spec:
           namespace: cnpg-system
     - tenant: "kagent"
       podSecurityEnforce: "privileged"
+      apiAccess: "true"
       configs:
         enabled: false
       dependsOn:
@@ -60,6 +61,7 @@ spec:
         name: << inputs.tenant >>
         labels:
           pod-security.kubernetes.io/enforce: << inputs.podSecurityEnforce >>
+          ate.dev/api-access: << get inputs "apiAccess" | default "false" | toJson >>
     - apiVersion: v1
       kind: Secret
       metadata:
