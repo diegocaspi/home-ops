@@ -83,41 +83,30 @@ cd /tmp/substrate && go build -o /tmp/ate-setup ./cmd/ate-setup
 
 Back the three Secrets up out of band; Flux does not manage them.
 
-### 4b. Remaining signing pools
+### 4b. Actor and egress pools
 
-Substrate also needs signing-key pools (actor JWT, actor CA, egress MITM) that
-no chart creates — only
-`kagent install` generates them, and Flux cannot adopt the pre-seeded release
-any other way. Run the installer once, exactly matching the Flux values, then
-let Flux take over the resulting releases (helm-controller sees an unmanaged
-release and upgrades/adopts it).
-
-```bash
-export OPENAI_API_KEY=$(op item get kagent --fields API_KEY --reveal --account yours) # zen key
-cat > /tmp/kagent-config.yaml <<EOF
-install:
-  kagent:
-    valuesFiles: [/tmp/kagent-values.yaml]
-  substrate:
-    valuesFiles: [/tmp/substrate-values.yaml]
-EOF
-```
-
-`/tmp/kagent-values.yaml` — identical to `spec.values` of the kagent
-HelmRelease; `/tmp/substrate-values.yaml` — identical to the substrate
-HelmRelease values. Then:
+The substrate chart does not create the actor JWT pool, actor CA pool, actor CA
+trust bundle or egress MITM CA pool, and `ate-api-server`, `ate-idp-server` and
+`atenet-egress` stay in `Init`/`ContainerCreating` without them. Create them
+once with the same `ate-setup` build as 4a. It must run from inside the
+substrate checkout, and existing pools are kept:
 
 ```bash
-kagent --config /tmp/kagent-config.yaml install --namespace kagent \
-  --skip-database-setup
+cd /tmp/substrate
+for c in jwt-authority-pool actor-id-ca-pool actor-id-ca-certs egress-mitm-ca-pool; do
+  /tmp/ate-setup --no-dev-env --kubeconfig <repo>/talos/clusterconfig/kubeconfig create $c
+done
 ```
 
-Wait for completion, then verify Flux adoption:
+`actor-id-ca-certs` is derived from `actor-id-ca-pool`, so keep that order. Back
+up `actor-id-jwt-pool`, `actor-id-ca-pool` and `egress-mitm-ca-pool` out of
+band; they hold signing keys and Flux does not manage them.
 
-```bash
-flux -n ate-system reconcile helmrelease substrate --with-source
-flux -n kagent reconcile helmrelease kagent --with-source
-```
+The `ate-api-authentication` ConfigMap is managed by Flux
+(`tenants/ate-system/controllers/api-authentication.yaml`) rather than
+`ate-setup create api-authentication-config`: the cluster's service-account
+issuer is `https://192.168.2.144:6443`, and the generated config would omit the
+CA and token files the API server needs to complete OIDC discovery against it.
 
 ## 5. Verify
 

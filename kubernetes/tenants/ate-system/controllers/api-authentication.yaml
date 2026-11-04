@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/v1/configmap.json
+# Not created by the substrate chart (see docs/guides/authentication.md in
+# substrate). The issuer must equal the cluster's service-account issuer
+# exactly (`kubectl get --raw /.well-known/openid-configuration`); Talos uses
+# the control-plane endpoint, which is signed by the cluster CA, so discovery
+# needs the projected service-account CA and token.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ate-api-authentication
+data:
+  authentication.yaml: |
+    jwtProviders:
+    - name: kubernetes
+      issuer: https://192.168.2.144:6443
+      audiences: [api.ate-system.svc]
+      certificateAuthorityFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      discoveryTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
