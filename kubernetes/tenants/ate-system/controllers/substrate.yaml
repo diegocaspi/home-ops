@@ -59,6 +59,7 @@ spec:
       app.kubernetes.io/version: 1.0.0-rc1
   dependsOn:
     - name: substrate-crds
+    - name: substrate-podcert
   install:
     disableWait: true
     strategy:

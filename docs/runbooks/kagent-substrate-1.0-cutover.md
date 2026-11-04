@@ -62,8 +62,31 @@ RustFS (default enabled) stores snapshots in its 1Gi PVC on longhorn.
 
 ## 4. One-time identity bootstrap
 
-Substrate needs signing-key pools (actor JWT, actor CA, egress MITM, pod
-identity, service DNS, Postgres CA) that no chart creates — only
+### 4a. Pod certificate signer CA pools
+
+Substrate's pod certificates (`servicedns.podcert.ate.dev/identity`,
+`podidentity.podcert.ate.dev/identity`) and their ClusterTrustBundles come from
+the separate `substrate-podcert` chart, deployed by Flux from
+`tenants/ate-system/controllers/substrate-podcert.yaml` into
+`podcertificate-controller-system`. Without it every substrate pod sits in
+`ContainerCreating`/`Init`. The controller needs three CA-pool Secrets
+(`service-dns-ca-pool`, `pod-identity-ca-pool`, `postgres-ca-pool`) in that
+namespace before it starts. Generate them once, idempotently (existing pools are
+kept; replacing a pool invalidates every certificate issued from it):
+
+```bash
+git clone --depth 1 --branch v1.0.0-rc1 https://github.com/kagent-dev/substrate /tmp/substrate
+cd /tmp/substrate && go build -o /tmp/ate-setup ./cmd/ate-setup
+/tmp/ate-setup --no-dev-env --kubeconfig <repo>/talos/clusterconfig/kubeconfig \
+  create podcertificate-controller-cas
+```
+
+Back the three Secrets up out of band; Flux does not manage them.
+
+### 4b. Remaining signing pools
+
+Substrate also needs signing-key pools (actor JWT, actor CA, egress MITM) that
+no chart creates — only
 `kagent install` generates them, and Flux cannot adopt the pre-seeded release
 any other way. Run the installer once, exactly matching the Flux values, then
 let Flux take over the resulting releases (helm-controller sees an unmanaged
