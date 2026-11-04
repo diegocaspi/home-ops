@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/ocirepository_v1.json
+# Cluster-wide pod certificate signer for Agent Substrate. It issues the
+# servicedns/podidentity/postgres pod certificates and publishes their
+# ClusterTrustBundles; the substrate chart does not deploy it. The three
+# *-ca-pool Secrets in its namespace are created once by
+# `ate-setup create podcertificate-controller-cas` (see
+# docs/runbooks/kagent-substrate-1.0-cutover.md).
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: substrate-podcert
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+# renovate: datasource=docker depName=ghcr.io/kagent-dev/substrate/helm/substrate-podcert
+    tag: 1.0.0-rc1
+  url: oci://ghcr.io/kagent-dev/substrate/helm/substrate-podcert
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: substrate-podcert
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: substrate-podcert
+  commonMetadata:
+    labels:
+      app.kubernetes.io/version: 1.0.0-rc1
+  install:
+    createNamespace: true
+    strategy:
+      name: RetryOnFailure
+  interval: 1h
+  # the chart installs into the release namespace, which the CA-pool Secrets
+  # are created in
+  targetNamespace: podcertificate-controller-system
+  timeout: 10m
+  upgrade:
+    strategy:
+      name: RetryOnFailure
