@@ -6,8 +6,10 @@ metadata:
   namespace: iam
 spec:
   instances: 1
-  image: quay.io/phasetwo/phasetwo-keycloak:26.8.1
-  startOptimized: false
+  # pre-built with kc.sh build (docker/keycloak/Dockerfile) so the operator
+  # runs `start --optimized`; keep the version in sync with the Dockerfile ARG
+  # renovate: datasource=docker depName=ghcr.io/diegocaspi/home-ops-keycloak
+  image: ghcr.io/diegocaspi/home-ops-keycloak:26.8.1
   bootstrapAdmin:
     user:
       secret: iam-keycloak
