@@ -21,7 +21,7 @@ spec:
     - tenant: "cnpg-system"
       podSecurityEnforce: "baseline"
       configs:
-        enabled: true
+        enabled: false
     - tenant: "iam"
       podSecurityEnforce: "baseline"
       additionalDependsOn:
@@ -37,23 +37,6 @@ spec:
       podSecurityEnforce: "privileged"
       configs:
         enabled: false
-    - tenant: "ate-system"
-      podSecurityEnforce: "privileged"
-      configs:
-        enabled: false
-      dependsOn:
-        - name: configs
-          namespace: cnpg-system
-    - tenant: "kagent"
-      podSecurityEnforce: "privileged"
-      apiAccess: "true"
-      configs:
-        enabled: false
-      dependsOn:
-        - name: configs
-          namespace: cnpg-system
-        - name: controllers
-          namespace: ate-system
   resources:
     - apiVersion: v1
       kind: Namespace
