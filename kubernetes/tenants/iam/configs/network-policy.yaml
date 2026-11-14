@@ -1,7 +1,9 @@
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/networking.k8s.io/networkpolicy_v1.json
 # The keycloak-operator NetworkPolicy enforces ingress on the pods; Cilium (netkit) then drops
-# same-node service replies from CoreDNS (src 10.96.0.10), so Keycloak cannot resolve the DB host.
+# same-node service replies, so Keycloak cannot resolve the DB host (CoreDNS) or connect to
+# the pgBouncer pooler, which is scheduled on the same node (JDBC connect timeouts). Explicit
+# ingress allows for the reply sources work around it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -21,3 +23,7 @@ spec:
           podSelector:
             matchLabels:
               k8s-app: kube-dns
+    - from:
+        - podSelector:
+            matchLabels:
+              cnpg.io/poolerName: iam-postgres-pooler
