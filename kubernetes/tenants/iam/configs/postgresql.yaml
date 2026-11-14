@@ -7,6 +7,10 @@ metadata:
   namespace: iam
 spec:
   instances: 2
+  # operator-managed primary PDB permanently blocks voluntary evictions of the
+  # primary (minAvailable=1 with a single primary pod); drains of the primary's
+  # node rely on CNPG's automatic switchover, which works without the PDB
+  enablePDB: false
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5
   storage:
     size: 20Gi
