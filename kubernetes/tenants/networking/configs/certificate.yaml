@@ -11,6 +11,7 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production
+  duration: 2160h # 3 months
   privateKey:
     algorithm: ECDSA
     size: 256
