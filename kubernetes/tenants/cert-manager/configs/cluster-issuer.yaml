@@ -6,7 +6,7 @@ metadata:
   name: letsencrypt-production
 spec:
   acme:
-    profile: shortlived
+    profile: classic # dcaspi-dev wants 3-month certs; shortlived caps validity at ~7 days
     privateKeySecretRef:
       name: letsencrypt-production
     server: https://acme-v02.api.letsencrypt.org/directory
