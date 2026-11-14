@@ -68,6 +68,10 @@ spec:
     strategy:
       name: RetryOnFailure
   values:
+    # source-controller appends the OCI digest to the chart version
+    # ("1.0.0-rc1+<digest>"); "+" is invalid in a Docker tag and the chart
+    # defaults controller/ui image tags to the chart version, so pin it
+    tag: 1.0.0-rc1
     # connection strings come from the shared CNPG cluster via ExternalSecret;
     # the controller assumes roles after connecting, and the app user is its own role
     database:
